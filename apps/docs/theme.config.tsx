@@ -19,7 +19,7 @@ const Logo = (
       className="text-xl pt-1.5 font-bold text-black dark:text-white hover:text-black/95 dark:hover:text-white/95 transition-all"
       style={logoFont.style}
     >
-      Build to Learn
+      Ops Board
     </span>
   </div>
 );
@@ -28,7 +28,8 @@ const Head = () => {
   const { title } = useConfig();
   const { route } = useRouter();
 
-  const pageTitle = route === "/" || !title ? "CS Hub" : `${title} | CS Hub`;
+  const pageTitle =
+    route === "/" || !title ? "Ops Board" : `${title} | Ops Board`;
   const socialImage = "";
 
   return (
@@ -77,7 +78,7 @@ const Footer = (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         <div className="space-y-4">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            CS Hub
+            Ops Board
           </h2>
           <p className="text-sm">
             Empowering the next generation of computer scientists with
@@ -224,7 +225,8 @@ const Footer = (
             Stay Updated
           </h3>
           <p className="mb-4 text-sm">
-            Subscribe to our newsletter for the latest articles and CS insights.
+            Subscribe to our newsletter for the latest articles and Ops Board
+            insights.
           </p>
           <form className="space-y-2">
             <input
@@ -245,7 +247,7 @@ const Footer = (
 
       <div className="mt-8 pt-8 border-t border-gray-300 dark:border-gray-800 flex flex-col sm:flex-row justify-between items-center">
         <p className="text-sm">
-          © {new Date().getFullYear()} CS Resources Hub. All rights reserved.
+          © {new Date().getFullYear()} Ops Board. All rights reserved.
         </p>
         <nav className="mt-4 sm:mt-0">
           <ul className="flex space-x-4 text-sm">
@@ -296,7 +298,7 @@ const config: DocsThemeConfig = {
     const { asPath } = useRouter();
     if (asPath !== "/") {
       return {
-        titleTemplate: "%s | CS Resources",
+        titleTemplate: "%s | Ops Board",
       };
     }
   },
