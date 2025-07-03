@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import api from "@/lib/api";
-import toast from "react-hot-toast";
-import { PlusIcon } from "@heroicons/react/24/solid";
-import { VideoCard } from "@/components/videos/VideoCard";
-import { VideoModal } from "@/components/videos/VideoModal";
+import { useEffect, useState } from 'react';
+import api from '@/lib/api';
+import toast from 'react-hot-toast';
+import { PlusIcon } from '@heroicons/react/24/solid';
+import { VideoCard } from '@/components/videos/VideoCard';
+import { VideoModal } from '@/components/videos/VideoModal';
 
 export interface IVideo {
   _id: string;
   title: string;
   description?: string;
   url: string;
-  category: "Data Structures" | "Algorithms" | "System Design" | "Behavioral";
+  category: 'Data Structures' | 'Algorithms' | 'System Design' | 'Behavioral';
   uploadedBy: { _id: string; name: string };
   createdAt: string;
 }
@@ -25,10 +25,10 @@ export default function VideosPage() {
   const fetchVideos = async () => {
     setIsLoading(true);
     try {
-      const { data } = await api.get("/videos");
+      const { data } = await api.get('/videos');
       setVideos(data);
     } catch (error) {
-      toast.error("Failed to fetch videos.");
+      toast.error('Failed to fetch videos.');
     } finally {
       setIsLoading(false);
     }

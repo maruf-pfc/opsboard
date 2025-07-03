@@ -1,13 +1,24 @@
-import { IPayment } from "@/app/(dashboard)/payments/page";
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
-import api from "@/lib/api";
-import toast from "react-hot-toast";
-import { format } from "date-fns";
-import { classNames } from "@/lib/utils";
+import { IPayment } from '@/app/(dashboard)/payments/page';
+import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import api from '@/lib/api';
+import toast from 'react-hot-toast';
+import { format } from 'date-fns';
+import { classNames } from '@/lib/utils';
+
+// Patch: Extend IPayment.trainer to include role for table display
+type TrainerWithRole = {
+  _id: string;
+  name: string;
+  role?: string;
+  profileImage?: string;
+};
+interface PaymentWithRole extends Omit<IPayment, 'trainer'> {
+  trainer: TrainerWithRole;
+}
 
 type PaymentTableProps = {
-  payments: IPayment[];
-  onEdit: (payment: IPayment) => void;
+  payments: PaymentWithRole[];
+  onEdit: (payment: PaymentWithRole) => void;
   onUpdate: () => void;
 };
 
@@ -17,13 +28,13 @@ export function PaymentTable({
   onUpdate,
 }: PaymentTableProps) {
   const handleDelete = async (id: string) => {
-    if (window.confirm("Delete this payment record?")) {
+    if (window.confirm('Delete this payment record?')) {
       try {
         await api.delete(`/payments/${id}`);
-        toast.success("Record deleted!");
+        toast.success('Record deleted!');
         onUpdate();
       } catch (error) {
-        toast.error("Failed to delete record.");
+        toast.error('Failed to delete record.');
       }
     }
   };
@@ -34,19 +45,25 @@ export function PaymentTable({
         <thead className="bg-gray-50">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-              Trainer
+              Profile
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              Name
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              Details
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              Role
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
               Amount
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-              Month
+              Date
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
               Status
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-              Paid On
             </th>
             <th className="relative px-6 py-3">
               <span className="sr-only">Actions</span>
@@ -56,42 +73,61 @@ export function PaymentTable({
         <tbody className="bg-white divide-y divide-gray-200">
           {payments.map((payment) => (
             <tr key={payment._id}>
+              <td className="px-6 py-4 whitespace-nowrap">
+                {payment.trainer.profileImage ? (
+                  <img
+                    src={payment.trainer.profileImage}
+                    alt={payment.trainer.name}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center font-bold text-gray-600">
+                    {payment.trainer.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                 {payment.trainer.name}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {payment.trainer.role === 'TRAINER' &&
+                payment.courseName &&
+                payment.batchNo &&
+                payment.classNo
+                  ? `Course: ${payment.courseName}, Batch: ${payment.batchNo}, Class: ${payment.classNo}`
+                  : ''}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {payment.trainer.role || 'N/A'}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 ${payment.amount.toFixed(2)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {payment.month}
+                {format(new Date(payment.createdAt), 'PP')}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <span
                   className={classNames(
-                    payment.status === "Paid"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-yellow-100 text-yellow-800",
-                    "px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                    payment.status === 'Paid'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-yellow-100 text-yellow-800',
+                    'px-2 inline-flex text-xs leading-5 font-semibold rounded-full',
                   )}
                 >
                   {payment.status}
                 </span>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {payment.paidAt
-                  ? format(new Date(payment.paidAt), "PP")
-                  : "N/A"}
-              </td>
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                 <button
                   onClick={() => onEdit(payment)}
-                  className="text-indigo-600 hover:text-indigo-900"
+                  className="text-indigo-600 hover:text-indigo-900 cursor-pointer"
                 >
                   <PencilIcon className="h-5 w-5" />
                 </button>
                 <button
                   onClick={() => handleDelete(payment._id)}
-                  className="text-red-600 hover:text-red-900"
+                  className="text-red-600 hover:text-red-900 cursor-pointer"
                 >
                   <TrashIcon className="h-5 w-5" />
                 </button>

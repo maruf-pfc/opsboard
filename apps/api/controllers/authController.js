@@ -1,9 +1,9 @@
-const User = require("../models/User");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+const User = require('../models/User');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 };
 
 exports.registerUser = async (req, res) => {
@@ -11,7 +11,7 @@ exports.registerUser = async (req, res) => {
   try {
     const userExists = await User.findOne({ email });
     if (userExists)
-      return res.status(400).json({ error: "User already exists" });
+      return res.status(400).json({ error: 'User already exists' });
 
     const user = await User.create({ name, email, password });
 
@@ -23,7 +23,7 @@ exports.registerUser = async (req, res) => {
         token: generateToken(user._id),
       });
     } else {
-      res.status(400).json({ error: "Invalid user data" });
+      res.status(400).json({ error: 'Invalid user data' });
     }
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -42,7 +42,7 @@ exports.loginUser = async (req, res) => {
         token: generateToken(user._id),
       });
     } else {
-      res.status(401).json({ error: "Invalid email or password" });
+      res.status(401).json({ error: 'Invalid email or password' });
     }
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -1,6 +1,6 @@
-import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
-import { DocumentPlusIcon } from "@heroicons/react/24/outline";
+import Link from 'next/link';
+import { formatDistanceToNow } from 'date-fns';
+import { DocumentPlusIcon } from '@heroicons/react/24/outline';
 
 /**
  * Defines the shape of a single task object that this component expects to receive.
@@ -16,6 +16,11 @@ interface Task {
   };
 }
 
+interface RecentTasksListProps {
+  tasks: Task[];
+  title?: string;
+}
+
 /**
  * A dashboard component that displays a list of the 5 most recently created tasks.
  * It shows key information and provides a link to the main tasks page.
@@ -24,12 +29,13 @@ interface Task {
  * @param {Task[]} props.tasks - An array of recent task objects.
  * @returns {JSX.Element} A styled card component with the list of tasks.
  */
-export function RecentTasksList({ tasks }: { tasks: Task[] }) {
+export function RecentTasksList({
+  tasks,
+  title = 'Recently Created Tasks',
+}: RecentTasksListProps) {
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md h-full flex flex-col">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">
-        Recently Created Tasks
-      </h2>
+    <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md h-full flex flex-col min-h-[220px] w-full">
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">{title}</h2>
 
       <div className="flex-grow">
         {/* Check if there are any tasks to display */}
@@ -43,7 +49,7 @@ export function RecentTasksList({ tasks }: { tasks: Task[] }) {
                 </p>
                 <div className="flex justify-between items-center text-sm text-gray-500 mt-1">
                   <span>
-                    Assigned to: {task.assignedTo?.name || "Unassigned"}
+                    Assigned to: {task.assignedTo?.name || 'Unassigned'}
                   </span>
                   {/* Use date-fns to format the timestamp into a relative time (e.g., "about 5 hours ago") */}
                   <span className="flex-shrink-0">
@@ -73,7 +79,7 @@ export function RecentTasksList({ tasks }: { tasks: Task[] }) {
       <div className="mt-4 pt-4 border-t border-gray-200">
         <Link
           href="/tasks"
-          className="w-full text-center block text-indigo-600 hover:text-indigo-800 font-semibold transition-colors"
+          className="w-full text-center block text-indigo-600 hover:text-indigo-800 font-semibold transition-colors cursor-pointer"
         >
           View All Tasks →
         </Link>

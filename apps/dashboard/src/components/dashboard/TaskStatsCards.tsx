@@ -4,8 +4,11 @@ import {
   DocumentMagnifyingGlassIcon,
   NoSymbolIcon,
   CheckCircleIcon,
-} from "@heroicons/react/24/outline";
-import { motion } from "framer-motion";
+  ArrowUpIcon,
+  ArrowDownIcon,
+  MinusIcon,
+} from '@heroicons/react/24/outline';
+import { motion } from 'framer-motion';
 
 const StatCard = ({ title, value, icon: Icon, colorClass }: any) => (
   <motion.div
@@ -26,7 +29,7 @@ const StatCard = ({ title, value, icon: Icon, colorClass }: any) => (
 
 export function TaskStatsCards({ stats }: { stats: any }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
+    <div className="grid grid-cols-5 gap-5 overflow-x-auto min-w-[600px] w-full">
       <StatCard
         title="To Do"
         value={stats.byStatus.TODO}
@@ -56,6 +59,24 @@ export function TaskStatsCards({ stats }: { stats: any }) {
         value={stats.byStatus.BLOCKED}
         icon={NoSymbolIcon}
         colorClass="bg-red-500"
+      />
+      <StatCard
+        title="High Priority"
+        value={stats.byPriority.HIGH}
+        icon={ArrowUpIcon}
+        colorClass="bg-pink-600"
+      />
+      <StatCard
+        title="Normal Priority"
+        value={stats.byPriority.NORMAL}
+        icon={MinusIcon}
+        colorClass="bg-gray-400"
+      />
+      <StatCard
+        title="Low Priority"
+        value={stats.byPriority.LOW}
+        icon={ArrowDownIcon}
+        colorClass="bg-blue-300"
       />
     </div>
   );

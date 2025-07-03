@@ -7,7 +7,7 @@ import { TaskBoard } from '@/components/tasks/TaskBoard';
 // component clean and focused on layout.
 export default function TasksPage() {
   return (
-    <div>
+    <div className="space-y-8 px-2 sm:px-4 md:px-6 lg:px-8">
       {/* 
         The TaskBoard component handles everything:
         - Fetching all tasks from the API.

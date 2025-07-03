@@ -1,11 +1,11 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 const {
   registerUser,
   loginUser,
   getMe,
-} = require("../controllers/authController");
-const { protect } = require("../middleware/authMiddleware");
+} = require('../controllers/authController');
+const { protect } = require('../middleware/authMiddleware');
 
 /**
  * @swagger
@@ -45,7 +45,7 @@ const { protect } = require("../middleware/authMiddleware");
  *       400:
  *         description: Bad request
  */
-router.post("/register", registerUser);
+router.post('/register', registerUser);
 
 /**
  * @swagger
@@ -75,7 +75,7 @@ router.post("/register", registerUser);
  *       401:
  *         description: Invalid credentials
  */
-router.post("/login", loginUser);
+router.post('/login', loginUser);
 
 /**
  * @swagger
@@ -91,6 +91,6 @@ router.post("/login", loginUser);
  *       401:
  *         description: Not authorized
  */
-router.get("/me", protect, getMe);
+router.get('/me', protect, getMe);
 
 module.exports = router;

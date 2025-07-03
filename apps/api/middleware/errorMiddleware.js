@@ -5,9 +5,9 @@ const errorHandler = (err, req, res, next) => {
   const statusCode = err.statusCode || 500;
 
   res.status(statusCode).json({
-    error: err.message || "Internal Server Error",
+    error: err.message || 'Internal Server Error',
     // Optionally, you can include the stack trace in development
-    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
 };
 

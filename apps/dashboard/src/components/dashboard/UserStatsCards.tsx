@@ -1,8 +1,13 @@
-import { UsersIcon, UserPlusIcon } from "@heroicons/react/24/outline";
-import { motion } from "framer-motion";
+import {
+  UsersIcon,
+  UserPlusIcon,
+  UserGroupIcon,
+  AcademicCapIcon,
+} from '@heroicons/react/24/outline';
+import { motion } from 'framer-motion';
 
 const StatCard = (
-  { title, value, icon: Icon, colorClass }: any // Re-using the card component logic
+  { title, value, icon: Icon, colorClass }: any, // Re-using the card component logic
 ) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
@@ -22,7 +27,7 @@ const StatCard = (
 
 export function UserStatsCards({ stats }: { stats: any }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+    <div className="grid grid-cols-1 sm:grid-cols-4 gap-5">
       <StatCard
         title="Total Users"
         value={stats.total}
@@ -34,6 +39,18 @@ export function UserStatsCards({ stats }: { stats: any }) {
         value={stats.newThisMonth}
         icon={UserPlusIcon}
         colorClass="bg-sky-500"
+      />
+      <StatCard
+        title="Managers"
+        value={stats.managers}
+        icon={UserGroupIcon}
+        colorClass="bg-indigo-500"
+      />
+      <StatCard
+        title="Trainers"
+        value={stats.trainers}
+        icon={AcademicCapIcon}
+        colorClass="bg-orange-500"
       />
     </div>
   );
