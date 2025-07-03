@@ -1,21 +1,21 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const asyncHandler = require("../utils/asyncHandler");
+const express = require('express');
+const mongoose = require('mongoose');
+const asyncHandler = require('../utils/asyncHandler');
 
 const router = express.Router();
 
 // This is the exact same logic, now living in its own dedicated file.
 router.get(
-  "/",
+  '/',
   asyncHandler(async (req, res) => {
     // Real health check logic: Is the database connected?
     const isHealthy = mongoose.connection.readyState === 1;
 
-    const status = isHealthy ? "Online" : "Offline";
-    const statusColor = isHealthy ? "#1abc9c" : "#e74c3c"; // Green for Online, Red for Offline
-    const emoji = isHealthy ? "🚀" : "⚠️";
+    const status = isHealthy ? 'Online' : 'Offline';
+    const statusColor = isHealthy ? '#1abc9c' : '#e74c3c'; // Green for Online, Red for Offline
+    const emoji = isHealthy ? '🚀' : '⚠️';
 
-    res.setHeader("Content-Type", "text/html");
+    res.setHeader('Content-Type', 'text/html');
     res.send(`
     <!DOCTYPE html>
     <html lang="en">
@@ -86,7 +86,7 @@ router.get(
     </body>
     </html>
   `);
-  })
+  }),
 );
 
 module.exports = router;

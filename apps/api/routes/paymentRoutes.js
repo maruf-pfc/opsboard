@@ -1,6 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { getPayments, createPayment, updatePayment, deletePayment } = require('../controllers/paymentController');
+const {
+  getPayments,
+  createPayment,
+  updatePayment,
+  deletePayment,
+} = require('../controllers/paymentController');
 const { protect } = require('../middleware/authMiddleware');
 const { admin } = require('../middleware/adminMiddleware');
 

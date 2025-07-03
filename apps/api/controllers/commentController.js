@@ -1,6 +1,6 @@
 // opsboard-server/controllers/commentController.js
-const Comment = require("../models/Comment");
-const Task = require("../models/Task");
+const Comment = require('../models/Comment');
+const Task = require('../models/Task');
 
 // @desc    Create a comment on a task
 // @route   POST /api/tasks/:taskId/comments
@@ -13,8 +13,8 @@ exports.addCommentToTask = async (req, res) => {
       task: req.params.taskId,
     });
     const populatedComment = await Comment.findById(comment._id).populate(
-      "author",
-      "name email"
+      'author',
+      'name email',
     );
     res.status(201).json(populatedComment);
   } catch (error) {

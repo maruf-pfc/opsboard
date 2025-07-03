@@ -1,13 +1,13 @@
-import { ICampaign } from "@/app/(dashboard)/marketing/page";
+import { ICampaign } from '@/app/(dashboard)/marketing/page';
 import {
   PencilIcon,
   TrashIcon,
   PaperAirplaneIcon,
-} from "@heroicons/react/24/outline";
-import api from "@/lib/api";
-import toast from "react-hot-toast";
-import { format } from "date-fns";
-import { classNames } from "@/lib/utils";
+} from '@heroicons/react/24/outline';
+import api from '@/lib/api';
+import toast from 'react-hot-toast';
+import { format } from 'date-fns';
+import { classNames } from '@/lib/utils';
 
 type CampaignTableProps = {
   campaigns: ICampaign[];
@@ -21,13 +21,13 @@ export function CampaignTable({
   onUpdate,
 }: CampaignTableProps) {
   const handleDelete = async (id: string) => {
-    if (window.confirm("Delete this draft? This cannot be undone.")) {
+    if (window.confirm('Delete this draft? This cannot be undone.')) {
       try {
         await api.delete(`/marketing/campaigns/${id}`);
-        toast.success("Campaign deleted!");
+        toast.success('Campaign deleted!');
         onUpdate();
       } catch (error) {
-        toast.error("Failed to delete campaign.");
+        toast.error('Failed to delete campaign.');
       }
     }
   };
@@ -35,21 +35,21 @@ export function CampaignTable({
   const handleSend = async (id: string) => {
     if (
       window.confirm(
-        "Are you sure you want to send this campaign to all users?"
+        'Are you sure you want to send this campaign to all users?',
       )
     ) {
       try {
         await api.post(`/marketing/campaigns/${id}/send`);
-        toast.success("Campaign is being sent!");
+        toast.success('Campaign is being sent!');
         onUpdate();
       } catch (error: any) {
-        toast.error(error.response?.data?.error || "Failed to send campaign.");
+        toast.error(error.response?.data?.error || 'Failed to send campaign.');
       }
     }
   };
 
   return (
-    <div className="overflow-x-auto bg-white rounded-lg shadow">
+    <div className="overflow-x-auto w-full bg-white rounded-lg shadow">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
@@ -76,10 +76,10 @@ export function CampaignTable({
               <td className="px-6 py-4 whitespace-nowrap">
                 <span
                   className={classNames(
-                    campaign.status === "Sent"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-gray-100 text-gray-800",
-                    "px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                    campaign.status === 'Sent'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-gray-100 text-gray-800',
+                    'px-2 inline-flex text-xs leading-5 font-semibold rounded-full',
                   )}
                 >
                   {campaign.status}
@@ -87,30 +87,30 @@ export function CampaignTable({
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {campaign.sentAt
-                  ? format(new Date(campaign.sentAt), "PPp")
-                  : "N/A"}
+                  ? format(new Date(campaign.sentAt), 'PPp')
+                  : 'N/A'}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                {campaign.status === "Draft" && (
+                {campaign.status === 'Draft' && (
                   <>
                     <button
                       onClick={() => handleSend(campaign._id)}
                       title="Send"
-                      className="text-green-600 hover:text-green-900"
+                      className="text-green-600 hover:text-green-900 cursor-pointer"
                     >
                       <PaperAirplaneIcon className="h-5 w-5" />
                     </button>
                     <button
                       onClick={() => onEdit(campaign)}
                       title="Edit"
-                      className="text-indigo-600 hover:text-indigo-900"
+                      className="text-indigo-600 hover:text-indigo-900 cursor-pointer"
                     >
                       <PencilIcon className="h-5 w-5" />
                     </button>
                     <button
                       onClick={() => handleDelete(campaign._id)}
                       title="Delete"
-                      className="text-red-600 hover:text-red-900"
+                      className="text-red-600 hover:text-red-900 cursor-pointer"
                     >
                       <TrashIcon className="h-5 w-5" />
                     </button>

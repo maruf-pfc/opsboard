@@ -1,26 +1,26 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const CampaignSchema = new mongoose.Schema(
   {
     subject: {
       type: String,
-      required: [true, "Please add an email subject"],
+      required: [true, 'Please add an email subject'],
     },
     body: {
       type: String, // Can store HTML content
-      required: [true, "Please add email content"],
+      required: [true, 'Please add email content'],
     },
     status: {
       type: String,
-      enum: ["Draft", "Sent"],
-      default: "Draft",
+      enum: ['Draft', 'Sent'],
+      default: 'Draft',
     },
     sentAt: {
       type: Date,
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     recipientCount: {
@@ -28,7 +28,7 @@ const CampaignSchema = new mongoose.Schema(
       default: 0,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-module.exports = mongoose.model("Campaign", CampaignSchema);
+module.exports = mongoose.model('Campaign', CampaignSchema);

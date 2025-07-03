@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import api from "@/lib/api";
-import toast from "react-hot-toast";
-import { PlusIcon } from "@heroicons/react/24/solid";
-import { ClassTable } from "@/components/classes/ClassTable";
-import { ClassModal } from "@/components/classes/ClassModal";
+import { useEffect, useState } from 'react';
+import api from '@/lib/api';
+import toast from 'react-hot-toast';
+import { PlusIcon } from '@heroicons/react/24/solid';
+import { ClassTable } from '@/components/classes/ClassTable';
+import { ClassModal } from '@/components/classes/ClassModal';
 
 export interface IClass {
   _id: string;
@@ -25,11 +25,11 @@ export default function ClassesPage() {
   const fetchClasses = async () => {
     setIsLoading(true);
     try {
-      const { data } = await api.get("/classes");
+      const { data } = await api.get('/classes');
       setClasses(data);
     } catch (error) {
-      toast.error("Failed to fetch classes.");
-      console.log(error)
+      toast.error('Failed to fetch classes.');
+      console.log(error);
     } finally {
       setIsLoading(false);
     }
@@ -50,7 +50,7 @@ export default function ClassesPage() {
   };
 
   return (
-    <div>
+    <div className="space-y-8 px-2 sm:px-4 md:px-6 lg:px-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Classes</h1>
         <button

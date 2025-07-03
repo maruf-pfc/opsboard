@@ -1,0 +1,22 @@
+# .dockerignore for the backend server
+
+# Git files
+.git
+.gitignore
+
+# Node dependencies
+node_modules
+
+# Local environment variables (these should be injected at runtime)
+.env
+.env.*
+
+# Docker files
+Dockerfile
+.dockerignore
+
+# Logs
+*.log
+
+# IDE files
+.vscode
