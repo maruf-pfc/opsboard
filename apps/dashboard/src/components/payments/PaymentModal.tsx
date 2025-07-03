@@ -44,7 +44,7 @@ export function PaymentModal({
     if (paymentToEdit) {
       setTrainerId(paymentToEdit.trainer._id);
       setAmount(String(paymentToEdit.amount));
-      setMonth(paymentToEdit.month);
+      setMonth(paymentToEdit.month || '');
       setStatus(paymentToEdit.status);
       setNotes(paymentToEdit.notes || '');
       setDate(

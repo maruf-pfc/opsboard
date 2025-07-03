@@ -6,7 +6,12 @@ import { format } from 'date-fns';
 import { classNames } from '@/lib/utils';
 
 // Patch: Extend IPayment.trainer to include role for table display
-type TrainerWithRole = { _id: string; name: string; role?: string };
+type TrainerWithRole = {
+  _id: string;
+  name: string;
+  role?: string;
+  profileImage?: string;
+};
 interface PaymentWithRole extends Omit<IPayment, 'trainer'> {
   trainer: TrainerWithRole;
 }

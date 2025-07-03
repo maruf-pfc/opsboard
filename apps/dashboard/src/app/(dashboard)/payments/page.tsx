@@ -10,13 +10,16 @@ import { AdminRoute } from '@/components/auth/AdminRoute';
 
 export interface IPayment {
   _id: string;
-  trainer: { _id: string; name: string };
+  trainer: { _id: string; name: string; role?: string; profileImage?: string };
   amount: number;
-  month: string;
+  month?: string;
   status: 'Pending' | 'Paid';
   notes?: string;
   paidAt?: string;
   createdAt: string;
+  courseName?: string;
+  batchNo?: string;
+  classNo?: string;
 }
 
 export default function PaymentsPage() {
