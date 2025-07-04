@@ -108,29 +108,36 @@ export function PaymentTable({
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <span
-                  className={classNames(
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border-2 shadow-sm ${
                     payment.status === 'Paid'
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-yellow-100 text-yellow-800',
-                    'px-2 inline-flex text-xs leading-5 font-semibold rounded-full',
-                  )}
+                      ? 'bg-green-100 text-green-800 border-green-400'
+                      : 'bg-yellow-100 text-yellow-800 border-yellow-400'
+                  }`}
                 >
                   {payment.status}
                 </span>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                <button
-                  onClick={() => onEdit(payment)}
-                  className="text-indigo-600 hover:text-indigo-900 cursor-pointer"
-                >
-                  <PencilIcon className="h-5 w-5" />
-                </button>
-                <button
-                  onClick={() => handleDelete(payment._id)}
-                  className="text-red-600 hover:text-red-900 cursor-pointer"
-                >
-                  <TrashIcon className="h-5 w-5" />
-                </button>
+              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <div className="space-x-2 flex items-center justify-center">
+                  <button
+                    onClick={() => onEdit(payment)}
+                    className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white text-xs rounded-md hover:from-indigo-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 transform transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md cursor-pointer font-medium"
+                  >
+                    Edit
+                  </button>
+                  <a
+                    href="#"
+                    className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs rounded-md hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transform transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md cursor-pointer font-medium"
+                  >
+                    View
+                  </a>
+                  <button
+                    onClick={() => handleDelete(payment._id)}
+                    className="text-red-600 hover:text-red-900 cursor-pointer"
+                  >
+                    <TrashIcon className="h-5 w-5" />
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
