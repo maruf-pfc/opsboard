@@ -1,77 +1,96 @@
-const Campaign = require('../models/Campaign');
+const MarketingTask = require('../models/Marketing');
 const User = require('../models/User');
-const asyncHandler = require('../utils/asyncHandler');
 
-// @desc    Get all campaigns
-exports.getCampaigns = asyncHandler(async (req, res) => {
-  const campaigns = await Campaign.find()
-    .populate('createdBy', 'name')
-    .sort({ createdAt: -1 });
-  res.status(200).json(campaigns);
-});
+// Get all marketing tasks
+exports.getAllMarketingTasks = async (req, res) => {
+  try {
+    const tasks = await MarketingTask.find()
+      .populate('assignedTo', 'name email profileImage')
+      .populate('reportedTo', 'name email profileImage')
+      .sort({ createdAt: -1 });
+    res.status(200).json(tasks);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
-// @desc    Create a new campaign draft
-exports.createCampaign = asyncHandler(async (req, res) => {
-  const { subject, body } = req.body;
-  const campaign = await Campaign.create({
-    subject,
-    body,
-    createdBy: req.user.id,
-  });
-  res.status(201).json(campaign);
-});
+// Get a single marketing task by ID
+exports.getMarketingTaskById = async (req, res) => {
+  try {
+    const task = await MarketingTask.findById(req.params.id)
+      .populate('assignedTo', 'name email profileImage')
+      .populate('reportedTo', 'name email profileImage');
+    if (!task) return res.status(404).json({ error: 'Task not found' });
+    res.status(200).json(task);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
-// @desc    Update a campaign draft
-exports.updateCampaign = asyncHandler(async (req, res) => {
-  const { subject, body } = req.body;
-  let campaign = await Campaign.findById(req.params.id);
+// Create a new marketing task
+exports.createMarketingTask = async (req, res) => {
+  try {
+    const {
+      title,
+      description,
+      status,
+      priority,
+      dueDate,
+      assignedTo,
+      reportedTo,
+    } = req.body;
+    const task = new MarketingTask({
+      title,
+      description,
+      status,
+      priority,
+      dueDate,
+      assignedTo,
+      reportedTo,
+    });
+    await task.save();
+    const populatedTask = await task
+      .populate('assignedTo', 'name email profileImage')
+      .populate('reportedTo', 'name email profileImage');
+    res.status(201).json(populatedTask);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
 
-  if (!campaign) return res.status(404).json({ error: 'Campaign not found' });
-  if (campaign.status === 'Sent')
-    return res.status(400).json({ error: 'Cannot edit a sent campaign' });
+// Update a marketing task
+exports.updateMarketingTask = async (req, res) => {
+  try {
+    const {
+      title,
+      description,
+      status,
+      priority,
+      dueDate,
+      assignedTo,
+      reportedTo,
+    } = req.body;
+    const task = await MarketingTask.findByIdAndUpdate(
+      req.params.id,
+      { title, description, status, priority, dueDate, assignedTo, reportedTo },
+      { new: true, runValidators: true },
+    )
+      .populate('assignedTo', 'name email profileImage')
+      .populate('reportedTo', 'name email profileImage');
+    if (!task) return res.status(404).json({ error: 'Task not found' });
+    res.status(200).json(task);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
 
-  campaign.subject = subject || campaign.subject;
-  campaign.body = body || campaign.body;
-  await campaign.save();
-
-  res.status(200).json(campaign);
-});
-
-// @desc    Delete a campaign draft
-exports.deleteCampaign = asyncHandler(async (req, res) => {
-  const campaign = await Campaign.findById(req.params.id);
-  if (!campaign) return res.status(404).json({ error: 'Campaign not found' });
-  if (campaign.status === 'Sent')
-    return res.status(400).json({ error: 'Cannot delete a sent campaign' });
-
-  await campaign.remove();
-  res.status(200).json({ message: 'Campaign deleted' });
-});
-
-// @desc    "Send" a campaign
-exports.sendCampaign = asyncHandler(async (req, res) => {
-  const campaign = await Campaign.findById(req.params.id);
-  if (!campaign) return res.status(404).json({ error: 'Campaign not found' });
-  if (campaign.status === 'Sent')
-    return res.status(400).json({ error: 'Campaign has already been sent' });
-
-  // In a real app, you would integrate with an email service like SendGrid or Mailgun here.
-  // We will simulate it.
-  const users = await User.find({}).select('email');
-  const recipientCount = users.length;
-
-  console.log('--- SIMULATING EMAIL SEND ---');
-  console.log(`Campaign Subject: ${campaign.subject}`);
-  console.log(`Sending to ${recipientCount} users...`);
-  // users.forEach(user => console.log(`  - ${user.email}`));
-  console.log('--- SIMULATION COMPLETE ---');
-
-  campaign.status = 'Sent';
-  campaign.sentAt = Date.now();
-  campaign.recipientCount = recipientCount;
-  await campaign.save();
-
-  res
-    .status(200)
-    .json({ message: `Campaign sent to ${recipientCount} users.` });
-});
+// Delete a marketing task
+exports.deleteMarketingTask = async (req, res) => {
+  try {
+    const task = await MarketingTask.findByIdAndDelete(req.params.id);
+    if (!task) return res.status(404).json({ error: 'Task not found' });
+    res.status(200).json({ message: 'Task deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

@@ -1,20 +1,19 @@
 const express = require('express');
 const router = express.Router();
-const {
-  getCampaigns,
-  createCampaign,
-  updateCampaign,
-  deleteCampaign,
-  sendCampaign,
-} = require('../controllers/marketingController');
+const marketingController = require('../controllers/marketingController');
 const { protect } = require('../middleware/authMiddleware');
-const { admin } = require('../middleware/adminMiddleware');
 
-// All marketing routes are admin-only
-router.use(protect, admin);
+router.use(protect);
 
-router.route('/campaigns').get(getCampaigns).post(createCampaign);
-router.route('/campaigns/:id').put(updateCampaign).delete(deleteCampaign);
-router.route('/campaigns/:id/send').post(sendCampaign);
+router
+  .route('/')
+  .get(marketingController.getAllMarketingTasks)
+  .post(marketingController.createMarketingTask);
+
+router
+  .route('/:id')
+  .get(marketingController.getMarketingTaskById)
+  .put(marketingController.updateMarketingTask)
+  .delete(marketingController.deleteMarketingTask);
 
 module.exports = router;

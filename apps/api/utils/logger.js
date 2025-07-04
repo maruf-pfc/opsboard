@@ -1,7 +1,21 @@
-const morgan = require('morgan');
+const { createLogger, format, transports } = require('winston');
+const path = require('path');
 
-// Use 'dev' format for development, which gives colored status codes
-// For production, you might want 'combined' which is more detailed
-const logger = morgan('dev');
+const logger = createLogger({
+  level: 'info',
+  format: format.combine(
+    format.timestamp(),
+    format.printf(({ timestamp, level, message }) => {
+      return `[${timestamp}] ${level}: ${message}`;
+    }),
+  ),
+  transports: [
+    new transports.File({
+      filename: path.join(__dirname, '../logs/api.log'),
+      level: 'info',
+    }),
+    new transports.Console(),
+  ],
+});
 
 module.exports = logger;
