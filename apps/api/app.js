@@ -39,8 +39,11 @@ app.use((req, res, next) => {
     const timestamp = new Date().toISOString();
 
     // Log to winston
+    // logger.info(
+    //   `[${timestamp}] ${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms IP: ${req.ip} User: ${user}`,
+    // );
     logger.info(
-      `[${timestamp}] ${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms IP: ${req.ip} User: ${user}`,
+      `[${timestamp}] ${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms`,
     );
 
     // Log to console using chalk
@@ -51,10 +54,10 @@ app.use((req, res, next) => {
         chalk.blue(req.originalUrl),
         statusColor(res.statusCode),
         chalk.yellow(`${duration}ms`),
-        chalk.white('IP:'),
-        chalk.cyan(req.ip),
-        chalk.white('User:'),
-        chalk.cyan(user),
+        // chalk.white('IP:'),
+        // chalk.cyan(req.ip),
+        // chalk.white('User:'),
+        // chalk.cyan(user),
       ].join(' '),
     );
   });

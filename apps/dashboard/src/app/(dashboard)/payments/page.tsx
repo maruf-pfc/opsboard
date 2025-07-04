@@ -62,7 +62,7 @@ export default function PaymentsPage() {
             <h1 className="text-3xl font-bold text-gray-800">Payments</h1>
             <button
               onClick={() => handleModalOpen()}
-              className="flex items-center gap-2 bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-indigo-700"
+              className="flex items-center gap-2 bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-indigo-700 cursor-pointer"
             >
               <PlusIcon className="h-5 w-5" />
               Create Payment
