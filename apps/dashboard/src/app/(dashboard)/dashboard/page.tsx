@@ -9,6 +9,30 @@ import { UserStatsCards } from '@/components/dashboard/UserStatsCards';
 import { RecentTasksList } from '@/components/dashboard/RecentTasksList';
 import { UpcomingClassesList } from '@/components/dashboard/UpcomingClassesList';
 import { AdminPaymentStats } from '@/components/dashboard/AdminPaymentStats';
+import { Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import {
+  UserGroupIcon,
+  ClipboardDocumentListIcon,
+  CurrencyDollarIcon,
+} from '@heroicons/react/24/outline';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+);
 
 // Define the shape of the data we expect from the API
 export interface IDashboardStats {
@@ -72,87 +96,121 @@ export default function DashboardPage() {
     return <div>Loading dashboard...</div>;
   }
 
+  const paymentData = stats.payments?.monthlyAnalytics || [];
+  const barData = {
+    labels: paymentData.map((m) => m._id),
+    datasets: [
+      {
+        label: 'Total Paid',
+        data: paymentData.map((m) => m.totalPaid),
+        backgroundColor: 'rgba(99, 102, 241, 0.7)', // indigo-500
+      },
+    ],
+  };
+  const barOptions = {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      title: { display: false },
+    },
+  };
+
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-800">
-          Welcome back, {user?.name}!
-        </h1>
-        <p className="text-gray-600 mt-1">
-          Here's a summary of what's happening across your workspace.
-        </p>
+    <div className="space-y-12">
+      {/* Welcome Section */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-2">
+        <div>
+          <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-2 tracking-tight drop-shadow-sm">
+            Welcome back,{' '}
+            <span className="bg-gradient-to-r from-indigo-500 to-blue-500 bg-clip-text text-transparent">
+              {user?.name}!
+            </span>
+          </h1>
+          <p className="text-gray-500 text-lg md:text-xl font-medium">
+            Here's a summary of what's happening across your workspace.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-4 justify-start md:justify-end">
+          <div className="bg-gradient-to-br from-indigo-500 to-blue-500 text-white rounded-2xl px-7 py-5 flex items-center gap-4 shadow-xl hover:scale-105 transition-transform duration-200">
+            <UserGroupIcon className="h-10 w-10 opacity-80" />
+            <div>
+              <div className="text-3xl font-bold leading-tight">
+                {stats.users.total}
+              </div>
+              <div className="text-base font-medium opacity-80">
+                Total Users
+              </div>
+            </div>
+          </div>
+          <div className="bg-gradient-to-br from-green-400 to-green-600 text-white rounded-2xl px-7 py-5 flex items-center gap-4 shadow-xl hover:scale-105 transition-transform duration-200">
+            <ClipboardDocumentListIcon className="h-10 w-10 opacity-80" />
+            <div>
+              <div className="text-3xl font-bold leading-tight">
+                {stats.tasks.total}
+              </div>
+              <div className="text-base font-medium opacity-80">
+                Total Tasks
+              </div>
+            </div>
+          </div>
+          {user?.role === 'ADMIN' && stats.payments && (
+            <div className="bg-gradient-to-br from-yellow-400 to-yellow-600 text-white rounded-2xl px-7 py-5 flex items-center gap-4 shadow-xl hover:scale-105 transition-transform duration-200">
+              <CurrencyDollarIcon className="h-10 w-10 opacity-80" />
+              <div>
+                <div className="text-3xl font-bold leading-tight">
+                  ${stats.payments.paidAmount.toLocaleString()}
+                </div>
+                <div className="text-base font-medium opacity-80">
+                  Total Paid
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Main Stats Cards */}
-      <TaskStatsCards stats={stats.tasks} />
-      <UserStatsCards stats={stats.users} />
-
-      {/* Admin-only Stats */}
-      {user?.role === 'ADMIN' && stats.payments && (
-        <AdminPaymentStats stats={stats.payments} />
-      )}
-
-      {/* Priority Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div>
-          <h2 className="text-lg font-semibold mb-2 text-gray-700">
-            Task Priority Overview
-          </h2>
-          <ul className="space-y-2">
-            <li>
-              High Priority:{' '}
-              <span className="font-bold">{stats.tasks.byPriority.HIGH}</span>
-            </li>
-            <li>
-              Normal Priority:{' '}
-              <span className="font-bold">{stats.tasks.byPriority.NORMAL}</span>
-            </li>
-            <li>
-              Low Priority:{' '}
-              <span className="font-bold">{stats.tasks.byPriority.LOW}</span>
-            </li>
-          </ul>
+      {/* Main Stats Cards & Chart */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Side: Task and User Stats stacked vertically */}
+        <div className="lg:col-span-2 flex flex-col gap-8">
+          <TaskStatsCards stats={stats.tasks} />
+          <UserStatsCards stats={stats.users} />
         </div>
-        <div>
-          <h2 className="text-lg font-semibold mb-2 text-gray-700">
-            User Roles
-          </h2>
-          <ul className="space-y-2">
-            <li>
-              Managers:{' '}
-              <span className="font-bold">{stats.users.managers}</span>
-            </li>
-            <li>
-              Trainers:{' '}
-              <span className="font-bold">{stats.users.trainers}</span>
-            </li>
-          </ul>
-        </div>
+
+        {/* Right Side: Admin-only Payment Chart */}
         {user?.role === 'ADMIN' && stats.payments && (
-          <div>
-            <h2 className="text-lg font-semibold mb-2 text-gray-700">
-              Payment Analytics (Last 6 Months)
-            </h2>
-            <ul className="space-y-2">
-              {stats.payments.monthlyAnalytics.map((m) => (
-                <li key={m._id}>
-                  {m._id}:{' '}
-                  <span className="font-bold">${m.totalPaid.toFixed(2)}</span> (
-                  {m.count} payments)
-                </li>
-              ))}
-            </ul>
+          <div className="lg:col-span-1 flex flex-col h-full">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 h-full flex flex-col hover:shadow-3xl transition-shadow duration-200">
+              <h2 className="text-xl font-bold mb-6 text-gray-800 flex items-center gap-2">
+                <CurrencyDollarIcon className="h-6 w-6 text-yellow-500" />
+                Payment Analytics (Last 6 Months)
+              </h2>
+              <div className="flex-1 min-h-[250px]">
+                <Bar data={barData} options={barOptions} />
+              </div>
+            </div>
           </div>
         )}
       </div>
 
+      {/* Admin-only Stats */}
+      {user?.role === 'ADMIN' && stats.payments && (
+        <div className="bg-white rounded-2xl shadow-lg p-6">
+          <AdminPaymentStats stats={stats.payments} />
+        </div>
+      )}
+
       {/* Two-column layout for lists */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <RecentTasksList tasks={stats.tasks.recent} />
-        <RecentTasksList
-          tasks={stats.tasks.highPriority}
-          title="High Priority Tasks"
-        />
+        <div className="bg-white rounded-2xl shadow-lg p-6">
+          <RecentTasksList tasks={stats.tasks.recent} />
+        </div>
+        <div className="bg-white rounded-2xl shadow-lg p-6">
+          <RecentTasksList
+            tasks={stats.tasks.highPriority}
+            title="High Priority Tasks"
+          />
+        </div>
       </div>
     </div>
   );

@@ -22,7 +22,6 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Enhanced request logger: logs to file (winston) and console (chalk)
 app.use((req, res, next) => {
   const start = Date.now();
 
@@ -35,18 +34,13 @@ app.use((req, res, next) => {
           ? chalk.yellow
           : chalk.red;
 
-    const user = req.user?.email || req.user?.id || 'Guest';
     const timestamp = new Date().toISOString();
+    const logMessage = `${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms`;
 
-    // Log to winston
-    // logger.info(
-    //   `[${timestamp}] ${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms IP: ${req.ip} User: ${user}`,
-    // );
-    logger.info(
-      `[${timestamp}] ${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms`,
-    );
+    // ✅ File log via Winston
+    logger.info(`[${logMessage}`);
 
-    // Log to console using chalk
+    // ✅ Console log with chalk
     console.log(
       [
         chalk.gray(`[${timestamp}]`),
@@ -54,10 +48,6 @@ app.use((req, res, next) => {
         chalk.blue(req.originalUrl),
         statusColor(res.statusCode),
         chalk.yellow(`${duration}ms`),
-        // chalk.white('IP:'),
-        // chalk.cyan(req.ip),
-        // chalk.white('User:'),
-        // chalk.cyan(user),
       ].join(' '),
     );
   });
