@@ -1,13 +1,12 @@
-// opsboard-server/controllers/userController.js
 const User = require('../models/User');
 const asyncHandler = require('../utils/asyncHandler');
 const { v2: cloudinary } = require('cloudinary');
 const bcrypt = require('bcryptjs');
 
 cloudinary.config({
-  cloud_name: 'daqgkrypt',
-  api_key: '764919378318921',
-  api_secret: 'XuP6AshmGQ3xN3Fypa5APT1yMk8',
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 // @desc    Get all users (for Admin Panel)

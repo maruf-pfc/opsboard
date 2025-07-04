@@ -1,4 +1,3 @@
-// opsboard-server/controllers/commentController.js
 const Comment = require('../models/Comment');
 const Task = require('../models/Task');
 
