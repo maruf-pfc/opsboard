@@ -1,8 +1,7 @@
-const MarketingTask = require('../models/Marketing');
-const User = require('../models/User');
+import MarketingTask from '../models/Marketing.js';
 
 // Get all marketing tasks
-exports.getAllMarketingTasks = async (req, res) => {
+export const getAllMarketingTasks = async (req, res) => {
   try {
     const tasks = await MarketingTask.find()
       .populate('assignedTo', 'name email profileImage')
@@ -15,7 +14,7 @@ exports.getAllMarketingTasks = async (req, res) => {
 };
 
 // Get a single marketing task by ID
-exports.getMarketingTaskById = async (req, res) => {
+export const getMarketingTaskById = async (req, res) => {
   try {
     const task = await MarketingTask.findById(req.params.id)
       .populate('assignedTo', 'name email profileImage')
@@ -28,7 +27,7 @@ exports.getMarketingTaskById = async (req, res) => {
 };
 
 // Create a new marketing task
-exports.createMarketingTask = async (req, res) => {
+export const createMarketingTask = async (req, res) => {
   try {
     const {
       title,
@@ -59,7 +58,7 @@ exports.createMarketingTask = async (req, res) => {
 };
 
 // Update a marketing task
-exports.updateMarketingTask = async (req, res) => {
+export const updateMarketingTask = async (req, res) => {
   try {
     const {
       title,
@@ -85,7 +84,7 @@ exports.updateMarketingTask = async (req, res) => {
 };
 
 // Delete a marketing task
-exports.deleteMarketingTask = async (req, res) => {
+export const deleteMarketingTask = async (req, res) => {
   try {
     const task = await MarketingTask.findByIdAndDelete(req.params.id);
     if (!task) return res.status(404).json({ error: 'Task not found' });

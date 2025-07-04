@@ -1,14 +1,14 @@
-const Task = require('../models/Task');
-const User = require('../models/User');
-const Class = require('../models/Class');
-const Payment = require('../models/Payment');
-const asyncHandler = require('../utils/asyncHandler');
-const { startOfMonth, endOfMonth } = require('date-fns');
+import Task from '../models/Task.js';
+import User from '../models/User.js';
+import Class from '../models/Class.js';
+import Payment from '../models/Payment.js';
+import asyncHandler from '../utils/asyncHandler.js';
+import { startOfMonth, endOfMonth } from 'date-fns';
 
 // @desc    Get dashboard statistics
 // @route   GET /api/v1/stats
 // @access  Private
-exports.getDashboardStats = asyncHandler(async (req, res) => {
+export const getDashboardStats = asyncHandler(async (req, res) => {
   // --- Task Statistics ---
   const totalTasks = await Task.countDocuments({ parentTask: null });
   const tasksByStatus = await Task.aggregate([

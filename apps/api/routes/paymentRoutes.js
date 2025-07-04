@@ -1,18 +1,21 @@
-const express = require('express');
-const router = express.Router();
-const {
+import express from 'express';
+import {
   getPayments,
   createPayment,
   updatePayment,
   deletePayment,
-} = require('../controllers/paymentController');
-const { protect } = require('../middleware/authMiddleware');
-const { admin } = require('../middleware/adminMiddleware');
+} from '../controllers/paymentController.js';
+
+import { protect } from '../middleware/authMiddleware.js';
+import { admin } from '../middleware/adminMiddleware.js';
+
+const router = express.Router();
 
 // All payment routes are admin-only
 router.use(protect, admin);
 
 router.route('/').get(getPayments).post(createPayment);
+
 router.route('/:id').put(updatePayment).delete(deletePayment);
 
-module.exports = router;
+export default router;

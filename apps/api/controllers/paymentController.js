@@ -1,19 +1,19 @@
-const Payment = require('../models/Payment');
-const asyncHandler = require('../utils/asyncHandler');
+import Payment from '../models/Payment.js';
+import asyncHandler from '../utils/asyncHandler.js';
 
-exports.getPayments = asyncHandler(async (req, res) => {
+export const getPayments = asyncHandler(async (req, res) => {
   const payments = await Payment.find()
     .populate('trainer', 'name email role profileImage')
     .sort({ createdAt: -1 });
   res.status(200).json(payments);
 });
 
-exports.createPayment = asyncHandler(async (req, res) => {
+export const createPayment = asyncHandler(async (req, res) => {
   const payment = await Payment.create(req.body);
   res.status(201).json(payment);
 });
 
-exports.updatePayment = asyncHandler(async (req, res) => {
+export const updatePayment = asyncHandler(async (req, res) => {
   let payment = await Payment.findById(req.params.id);
   if (!payment)
     return res.status(404).json({ error: 'Payment record not found' });
@@ -31,7 +31,7 @@ exports.updatePayment = asyncHandler(async (req, res) => {
   res.status(200).json(payment);
 });
 
-exports.deletePayment = asyncHandler(async (req, res) => {
+export const deletePayment = asyncHandler(async (req, res) => {
   const payment = await Payment.findByIdAndDelete(req.params.id);
   if (!payment)
     return res.status(404).json({ error: 'Payment record not found' });

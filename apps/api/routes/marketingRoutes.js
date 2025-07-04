@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import * as marketingController from '../controllers/marketingController.js';
+import { protect } from '../middleware/authMiddleware.js';
+
 const router = express.Router();
-const marketingController = require('../controllers/marketingController');
-const { protect } = require('../middleware/authMiddleware');
 
 router.use(protect);
 
@@ -16,4 +17,4 @@ router
   .put(marketingController.updateMarketingTask)
   .delete(marketingController.deleteMarketingTask);
 
-module.exports = router;
+export default router;

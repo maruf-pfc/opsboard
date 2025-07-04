@@ -1,23 +1,26 @@
-const express = require('express');
-const router = express.Router();
-const {
+import express from 'express';
+import {
   getUsers,
   updateUserRole,
   deleteUser,
   getUserById,
   updateUserProfile,
-} = require('../controllers/userController');
-const { protect } = require('../middleware/authMiddleware');
-const { admin } = require('../middleware/adminMiddleware');
+} from '../controllers/userController.js';
 
-router.route('/').get(protect, getUsers);
+import { protect } from '../middleware/authMiddleware.js';
+import { admin } from '../middleware/adminMiddleware.js';
 
-// Admin-only routes
+const router = express.Router();
+
+// 🛡️ Admin-only access to get all users
 router.route('/').get(protect, admin, getUsers);
+
+// Admin routes
 router.route('/:id/role').put(protect, admin, updateUserRole);
 router.route('/:id').delete(protect, admin, deleteUser);
 
+// User routes
 router.route('/:id').get(protect, getUserById);
 router.route('/:id/profile').put(protect, updateUserProfile);
 
-module.exports = router;
+export default router;

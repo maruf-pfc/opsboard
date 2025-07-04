@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Backend API for OpsBoard",
   "main": "server.js",
-  "type": "commonjs",
+  "type": "module",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
@@ -15,7 +15,7 @@
   "dependencies": {
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
-    "chalks": "^0.1.5",
+    "chalk": "^5.4.1",
     "clipboardy": "^4.0.0",
     "cloudinary": "^2.7.0",
     "cors": "^2.8.5",

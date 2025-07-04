@@ -1,5 +1,4 @@
-// opsboard-server/models/Comment.js
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const CommentSchema = new mongoose.Schema(
   {
@@ -17,4 +16,5 @@ const CommentSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-module.exports = mongoose.model('Comment', CommentSchema);
+const Comment = mongoose.model('Comment', CommentSchema);
+export default Comment;

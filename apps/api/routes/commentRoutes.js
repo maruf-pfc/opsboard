@@ -1,8 +1,9 @@
-const express = require('express');
+import express from 'express';
+import { addCommentToTask } from '../controllers/commentController.js';
+import { protect } from '../middleware/authMiddleware.js';
+
 const router = express.Router({ mergeParams: true }); // Important: mergeParams
-const { addCommentToTask } = require('../controllers/commentController');
-const { protect } = require('../middleware/authMiddleware');
 
 router.route('/').post(protect, addCommentToTask);
 
-module.exports = router;
+export default router;

@@ -1,5 +1,5 @@
-const swaggerJSDoc = require('swagger-jsdoc');
-const swaggerUi = require('swagger-ui-express');
+import swaggerJSDoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
 
 const options = {
   definition: {
@@ -24,15 +24,14 @@ const options = {
       },
     ],
   },
-  // Path to the API docs
-  apis: ['./routes/*.js'],
+  apis: ['./routes/*.js'], // adjust path if needed
 };
 
 const swaggerSpec = swaggerJSDoc(options);
 
 const swaggerDocs = (app) => {
   app.use('/api/v1/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-  console.log('API docs available at /api-docs');
+  console.log('API docs available at /api/v1/api-docs');
 };
 
-module.exports = swaggerDocs;
+export default swaggerDocs;
