@@ -1,5 +1,4 @@
-// opsboard-server/models/Task.js
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const TaskSchema = new mongoose.Schema(
   {
@@ -64,4 +63,5 @@ TaskSchema.virtual('comments', {
   foreignField: 'task',
 });
 
-module.exports = mongoose.model('Task', TaskSchema);
+const Task = mongoose.model('Task', TaskSchema);
+export default Task;

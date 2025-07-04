@@ -1,16 +1,19 @@
-const express = require('express');
-const router = express.Router();
-const {
+import express from 'express';
+import {
   getClasses,
   createClass,
   updateClass,
   deleteClass,
-} = require('../controllers/classController');
-const { protect } = require('../middleware/authMiddleware');
+} from '../controllers/classController.js';
+
+import { protect } from '../middleware/authMiddleware.js';
+
+const router = express.Router();
 
 router.use(protect);
 
 router.route('/').get(getClasses).post(createClass);
+
 router.route('/:id').put(updateClass).delete(deleteClass);
 
-module.exports = router;
+export default router;

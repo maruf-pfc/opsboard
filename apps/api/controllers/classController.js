@@ -1,7 +1,7 @@
-const Class = require('../models/Class');
+import Class from '../models/Class.js';
 
 // @desc    Get all classes
-exports.getClasses = async (req, res) => {
+export const getClasses = async (req, res) => {
   try {
     const classes = await Class.find()
       .populate('trainer', 'name email')
@@ -13,7 +13,7 @@ exports.getClasses = async (req, res) => {
 };
 
 // @desc    Create a class
-exports.createClass = async (req, res) => {
+export const createClass = async (req, res) => {
   try {
     const newClass = await Class.create(req.body);
     res.status(201).json(newClass);
@@ -23,7 +23,7 @@ exports.createClass = async (req, res) => {
 };
 
 // @desc    Update a class
-exports.updateClass = async (req, res) => {
+export const updateClass = async (req, res) => {
   try {
     const updatedClass = await Class.findByIdAndUpdate(
       req.params.id,
@@ -39,7 +39,7 @@ exports.updateClass = async (req, res) => {
 };
 
 // @desc    Delete a class
-exports.deleteClass = async (req, res) => {
+export const deleteClass = async (req, res) => {
   try {
     const deletedClass = await Class.findByIdAndDelete(req.params.id);
     if (!deletedClass)

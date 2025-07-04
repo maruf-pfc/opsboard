@@ -1,14 +1,15 @@
-const express = require('express');
-const router = express.Router();
-const {
+import express from 'express';
+import {
   getVideos,
   createVideo,
   deleteVideo,
-} = require('../controllers/videoController');
-const { protect } = require('../middleware/authMiddleware');
+} from '../controllers/videoController.js';
+import { protect } from '../middleware/authMiddleware.js';
+
+const router = express.Router();
 
 router.use(protect);
 router.route('/').get(getVideos).post(createVideo);
 router.route('/:id').delete(deleteVideo);
 
-module.exports = router;
+export default router;

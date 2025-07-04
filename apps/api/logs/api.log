@@ -37,3 +37,4 @@
 [2025-07-04T05:38:15.512Z] info: [2025-07-04T05:38:15.512Z] GET /api/v1/users 200 28ms IP: ::ffff:127.0.0.1 User: mdmarufsarker.mms@gmail.com
 [2025-07-04T05:38:15.535Z] info: [2025-07-04T05:38:15.535Z] GET /api/v1/marketing 304 43ms IP: ::ffff:127.0.0.1 User: mdmarufsarker.mms@gmail.com
 [2025-07-04T05:38:15.538Z] info: [2025-07-04T05:38:15.538Z] GET /api/v1/marketing 200 50ms IP: ::ffff:127.0.0.1 User: mdmarufsarker.mms@gmail.com
+[2025-07-04T06:23:48.165Z] info: [2025-07-04T06:23:48.163Z] GET /api/v1/auth/me 304 107ms IP: ::ffff:127.0.0.1 User: mdmarufsarker.mms@gmail.com

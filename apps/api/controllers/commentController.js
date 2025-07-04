@@ -1,9 +1,8 @@
-const Comment = require('../models/Comment');
-const Task = require('../models/Task');
+import Comment from '../models/Comment.js';
 
 // @desc    Create a comment on a task
 // @route   POST /api/tasks/:taskId/comments
-exports.addCommentToTask = async (req, res) => {
+export const addCommentToTask = async (req, res) => {
   try {
     const { content } = req.body;
     const comment = await Comment.create({

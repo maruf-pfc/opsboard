@@ -1,5 +1,10 @@
-const { createLogger, format, transports } = require('winston');
-const path = require('path');
+import { createLogger, format, transports } from 'winston';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// __dirname is not defined in ES modules, so define it like this:
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const logger = createLogger({
   level: 'info',
@@ -18,4 +23,4 @@ const logger = createLogger({
   ],
 });
 
-module.exports = logger;
+export default logger;

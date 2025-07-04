@@ -1,6 +1,6 @@
-const Task = require('../models/Task');
+import Task from '../models/Task.js';
 
-exports.createTask = async (req, res) => {
+export const createTask = async (req, res) => {
   try {
     // Accept all unified fields
     const {
@@ -41,7 +41,7 @@ exports.createTask = async (req, res) => {
   }
 };
 
-exports.getTasks = async (req, res) => {
+export const getTasks = async (req, res) => {
   try {
     const tasks = await Task.find({ parentTask: null }) // only get top-level tasks
       .populate('assignedTo', 'name email')
@@ -54,7 +54,7 @@ exports.getTasks = async (req, res) => {
 
 // @desc    Get single task by ID with details
 // @route   GET /api/tasks/:id
-exports.getTaskById = async (req, res) => {
+export const getTaskById = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id)
       .populate('assignedTo', 'name email')
@@ -78,7 +78,7 @@ exports.getTaskById = async (req, res) => {
   }
 };
 
-exports.updateTask = async (req, res) => {
+export const updateTask = async (req, res) => {
   try {
     // Accept all unified fields
     const updateFields = {
@@ -107,7 +107,7 @@ exports.updateTask = async (req, res) => {
   }
 };
 
-exports.deleteTask = async (req, res) => {
+export const deleteTask = async (req, res) => {
   try {
     const task = await Task.findByIdAndDelete(req.params.id);
     if (!task) return res.status(404).json({ error: 'Task not found' });
