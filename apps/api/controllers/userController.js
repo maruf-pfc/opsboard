@@ -36,13 +36,6 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
   if (!user) return res.status(404).json({ error: 'User not found.' });
 
-  if (
-    req.user._id.toString() !== user._id.toString() &&
-    !['ADMIN', 'MANAGER', 'TRAINER'].includes(req.user.role)
-  ) {
-    return res.status(403).json({ error: 'Forbidden.' });
-  }
-
   if (req.body.phone !== undefined) user.phone = req.body.phone;
   if (req.body.facebookUrl !== undefined)
     user.facebookUrl = req.body.facebookUrl;

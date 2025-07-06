@@ -1,8 +1,11 @@
 import { Fragment, useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Dialog, Transition } from '@headlessui/react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 import { IPayment } from '@/app/(dashboard)/payments/page';
+import { paymentSchema, type PaymentFormData } from '@/lib/validations';
 
 interface User {
   _id: string;
@@ -23,16 +26,31 @@ export function PaymentModal({
   onUpdate,
   paymentToEdit,
 }: PaymentModalProps) {
-  const [trainerId, setTrainerId] = useState('');
-  const [amount, setAmount] = useState('');
-  const [month, setMonth] = useState('');
-  const [status, setStatus] = useState<'Pending' | 'Paid'>('Pending');
-  const [notes, setNotes] = useState('');
-  const [date, setDate] = useState('');
   const [users, setUsers] = useState<User[]>([]);
-  const [courseName, setCourseName] = useState('');
-  const [batchNo, setBatchNo] = useState('');
-  const [classNo, setClassNo] = useState('');
+  const [selectedTrainerRole, setSelectedTrainerRole] = useState<string>('');
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<PaymentFormData>({
+    resolver: zodResolver(paymentSchema),
+    defaultValues: {
+      trainer: '',
+      amount: 0,
+      month: '',
+      status: 'Pending',
+      notes: '',
+      date: '',
+      courseName: '',
+      batchNo: '',
+      classNo: '',
+    },
+  });
+
+  const watchedTrainer = watch('trainer');
 
   useEffect(() => {
     if (isOpen) {
@@ -42,42 +60,50 @@ export function PaymentModal({
 
   useEffect(() => {
     if (paymentToEdit) {
-      setTrainerId(paymentToEdit.trainer._id);
-      setAmount(String(paymentToEdit.amount));
-      setMonth(paymentToEdit.month || '');
-      setStatus(paymentToEdit.status);
-      setNotes(paymentToEdit.notes || '');
-      setDate(
-        paymentToEdit.createdAt ? paymentToEdit.createdAt.substring(0, 10) : '',
-      );
-      setCourseName(paymentToEdit.courseName || '');
-      setBatchNo(paymentToEdit.batchNo || '');
-      setClassNo(paymentToEdit.classNo || '');
+      reset({
+        trainer: paymentToEdit.trainer._id,
+        amount: paymentToEdit.amount,
+        month: paymentToEdit.month || '',
+        status: paymentToEdit.status,
+        notes: paymentToEdit.notes || '',
+        date: paymentToEdit.createdAt
+          ? paymentToEdit.createdAt.substring(0, 10)
+          : '',
+        courseName: paymentToEdit.courseName || '',
+        batchNo: paymentToEdit.batchNo || '',
+        classNo: paymentToEdit.classNo || '',
+      });
     } else {
-      setTrainerId('');
-      setAmount('');
-      setMonth('');
-      setStatus('Pending');
-      setNotes('');
-      setDate('');
-      setCourseName('');
-      setBatchNo('');
-      setClassNo('');
+      reset({
+        trainer: '',
+        amount: 0,
+        month: '',
+        status: 'Pending',
+        notes: '',
+        date: '',
+        courseName: '',
+        batchNo: '',
+        classNo: '',
+      });
     }
-  }, [paymentToEdit, isOpen]);
+  }, [paymentToEdit, isOpen, reset]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    const selectedUser = users.find((u) => u._id === watchedTrainer);
+    setSelectedTrainerRole(selectedUser?.role || '');
+  }, [watchedTrainer, users]);
+
+  const onSubmit = async (data: PaymentFormData) => {
     const paymentData = {
-      trainer: trainerId,
-      amount: Number(amount),
-      month,
-      status,
-      notes,
-      createdAt: date ? new Date(date) : undefined,
-      courseName: courseName || undefined,
-      batchNo: batchNo || undefined,
-      classNo: classNo || undefined,
+      trainer: data.trainer,
+      amount: data.amount,
+      month: data.month,
+      status: data.status,
+      notes: data.notes,
+      createdAt: data.date ? new Date(data.date) : undefined,
+      courseName: data.courseName,
+      batchNo: data.batchNo,
+      classNo: data.classNo,
     };
     try {
       if (paymentToEdit) {
@@ -121,16 +147,16 @@ export function PaymentModal({
             >
               {paymentToEdit ? 'Edit Payment' : 'Log New Payment'}
             </Dialog.Title>
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Name
                 </label>
                 <select
-                  value={trainerId}
-                  onChange={(e) => setTrainerId(e.target.value)}
-                  required
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
+                  {...register('trainer')}
+                  className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white ${
+                    errors.trainer ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 >
                   <option value="" disabled>
                     Select a user
@@ -141,6 +167,11 @@ export function PaymentModal({
                     </option>
                   ))}
                 </select>
+                {errors.trainer && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.trainer.message}
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -148,7 +179,7 @@ export function PaymentModal({
                 </label>
                 <input
                   type="text"
-                  value={users.find((u) => u._id === trainerId)?.role || ''}
+                  value={selectedTrainerRole}
                   disabled
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-100 text-gray-500"
                 />
@@ -157,53 +188,72 @@ export function PaymentModal({
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Details
                 </label>
-                {users.find((u) => u._id === trainerId)?.role === 'TRAINER' ? (
+                {selectedTrainerRole === 'TRAINER' ? (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">
-                        Course
+                        Course *
                       </label>
                       <select
-                        value={courseName}
-                        onChange={(e) => setCourseName(e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white"
+                        {...register('courseName')}
+                        className={`w-full border rounded-lg px-3 py-2 bg-white ${
+                          errors.courseName
+                            ? 'border-red-500'
+                            : 'border-gray-300'
+                        }`}
                       >
-                        <option value="">Select</option>
+                        <option value="">Select Course</option>
                         <option value="CPC">CPC</option>
                         <option value="JIPC">JIPC</option>
                         <option value="Bootcamp">Bootcamp</option>
                       </select>
+                      {errors.courseName && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.courseName.message}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">
-                        Batch No
+                        Batch No *
                       </label>
                       <input
                         type="text"
-                        value={batchNo}
-                        onChange={(e) => setBatchNo(e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                        {...register('batchNo')}
+                        className={`w-full border rounded-lg px-3 py-2 ${
+                          errors.batchNo ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                        placeholder="e.g., 1, 2, 3"
                       />
+                      {errors.batchNo && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.batchNo.message}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">
-                        Class No
+                        Class No *
                       </label>
                       <input
                         type="text"
-                        value={classNo}
-                        onChange={(e) => setClassNo(e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                        {...register('classNo')}
+                        className={`w-full border rounded-lg px-3 py-2 ${
+                          errors.classNo ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                        placeholder="e.g., 1, 2, 3"
                       />
+                      {errors.classNo && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.classNo.message}
+                        </p>
+                      )}
                     </div>
                   </div>
                 ) : (
-                  <input
-                    type="text"
-                    value=""
-                    disabled
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-100"
-                  />
+                  <div className="text-center text-gray-500 py-4">
+                    Course, Batch, and Class details are required for trainers
+                  </div>
                 )}
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -213,11 +263,16 @@ export function PaymentModal({
                   </label>
                   <input
                     type="number"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    required
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    {...register('amount', { valueAsNumber: true })}
+                    className={`w-full border rounded-lg px-3 py-2 ${
+                      errors.amount ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   />
+                  {errors.amount && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.amount.message}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -225,34 +280,71 @@ export function PaymentModal({
                   </label>
                   <input
                     type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
+                    {...register('date')}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Month
+                </label>
+                <select
+                  {...register('month')}
+                  className={`w-full border rounded-lg px-3 py-2 bg-white ${
+                    errors.month ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                >
+                  <option value="">Select Month</option>
+                  <option value="January">January</option>
+                  <option value="February">February</option>
+                  <option value="March">March</option>
+                  <option value="April">April</option>
+                  <option value="May">May</option>
+                  <option value="June">June</option>
+                  <option value="July">July</option>
+                  <option value="August">August</option>
+                  <option value="September">September</option>
+                  <option value="October">October</option>
+                  <option value="November">November</option>
+                  <option value="December">December</option>
+                </select>
+                {errors.month && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.month.message}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Status
                 </label>
                 <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as any)}
+                  {...register('status')}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white"
                 >
-                  <option>Pending</option>
-                  <option>Paid</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Paid">Paid</option>
                 </select>
+                {errors.status && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.status.message}
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Notes
                 </label>
                 <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
+                  {...register('notes')}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 min-h-[60px]"
                 />
+                {errors.notes && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.notes.message}
+                  </p>
+                )}
               </div>
               <div className="mt-8 flex justify-end gap-3">
                 <button
@@ -264,9 +356,10 @@ export function PaymentModal({
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center px-6 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-lg font-semibold shadow-lg hover:from-indigo-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105"
+                  disabled={isSubmitting}
+                  className="inline-flex items-center px-6 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-lg font-semibold shadow-lg hover:from-indigo-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Save Record
+                  {isSubmitting ? 'Saving...' : 'Save Record'}
                 </button>
               </div>
             </form>

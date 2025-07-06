@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import toast from 'react-hot-toast';
+import { contestSchema, type ContestFormData } from '@/lib/validations';
 import api from '@/lib/api';
 
 interface User {
@@ -38,57 +41,66 @@ export default function ContestModal({
   users,
   contest,
 }: ContestModalProps) {
-  const [courseName, setCourseName] = useState<Contest['courseName']>('CPC');
-  const [batchNo, setBatchNo] = useState<number>(1);
-  const [contestName, setContestName] = useState('');
-  const [platform, setPlatform] = useState<Contest['platform']>('Leetcode');
-  const [status, setStatus] = useState<Contest['status']>('TODO');
-  const [priority, setPriority] = useState<Contest['priority']>('NORMAL');
-  const [assignedTo, setAssignedTo] = useState<User | undefined>(undefined);
-  const [reportedTo, setReportedTo] = useState<User | undefined>(undefined);
-  const [estimatedTime, setEstimatedTime] = useState('');
-  const [loading, setLoading] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<ContestFormData>({
+    resolver: zodResolver(contestSchema),
+    defaultValues: {
+      courseName: 'CPC',
+      batchNo: 1,
+      contestName: '',
+      platform: '',
+      status: 'TODO',
+      priority: 'NORMAL',
+      assignedTo: '',
+      reportedTo: '',
+      estimatedTime: 1,
+    },
+  });
 
   useEffect(() => {
-    setCourseName(contest?.courseName || 'CPC');
-    setBatchNo(contest?.batchNo || 1);
-    setContestName(contest?.contestName || '');
-    setPlatform(contest?.platform || 'Leetcode');
-    setStatus(contest?.status || 'TODO');
-    setPriority(contest?.priority || 'NORMAL');
-    setAssignedTo(contest?.assignedTo);
-    setReportedTo(contest?.reportedTo);
-    setEstimatedTime(contest?.estimatedTime || '');
-  }, [contest, isOpen]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (
-      !courseName ||
-      !batchNo ||
-      !contestName ||
-      !platform ||
-      !status ||
-      !priority ||
-      !assignedTo ||
-      !reportedTo ||
-      !estimatedTime
-    ) {
-      toast.error('Please fill all required fields.');
-      return;
+    if (contest) {
+      reset({
+        courseName: contest.courseName,
+        batchNo: contest.batchNo,
+        contestName: contest.contestName,
+        platform: contest.platform,
+        status: contest.status,
+        priority: contest.priority,
+        assignedTo: contest.assignedTo?._id || '',
+        reportedTo: contest.reportedTo?._id || '',
+        estimatedTime: Number(contest.estimatedTime) || 1,
+      });
+    } else {
+      reset({
+        courseName: 'CPC',
+        batchNo: 1,
+        contestName: '',
+        platform: '',
+        status: 'TODO',
+        priority: 'NORMAL',
+        assignedTo: '',
+        reportedTo: '',
+        estimatedTime: 1,
+      });
     }
-    setLoading(true);
+  }, [contest, isOpen, reset]);
+
+  const onSubmit = async (data: ContestFormData) => {
     try {
       const payload = {
-        courseName,
-        batchNo,
-        contestName,
-        platform,
-        status,
-        priority,
-        assignedTo: assignedTo._id,
-        reportedTo: reportedTo._id,
-        estimatedTime,
+        courseName: data.courseName,
+        batchNo: data.batchNo,
+        contestName: data.contestName,
+        platform: data.platform,
+        status: data.status,
+        priority: data.priority,
+        assignedTo: data.assignedTo,
+        reportedTo: data.reportedTo,
+        estimatedTime: data.estimatedTime,
       };
       let response;
       if (contest && contest._id) {
@@ -102,8 +114,6 @@ export default function ContestModal({
       onClose();
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Failed to save contest.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -125,82 +135,105 @@ export default function ContestModal({
         <h2 className="text-xl font-bold mb-4 cursor-pointer">
           {contest ? 'Edit Contest' : 'Create Contest'}
         </h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium">Course Name</label>
               <select
-                value={courseName}
-                onChange={(e) =>
-                  setCourseName(e.target.value as Contest['courseName'])
-                }
-                className="w-full border rounded px-3 py-2 mt-1"
-                required
+                {...register('courseName')}
+                className={`w-full border rounded px-3 py-2 mt-1 ${
+                  errors.courseName ? 'border-red-500' : ''
+                }`}
               >
                 <option value="CPC">CPC</option>
                 <option value="JIPC">JIPC</option>
                 <option value="Bootcamp">Bootcamp</option>
               </select>
+              {errors.courseName && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.courseName.message}
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium">Batch No</label>
               <input
                 type="number"
-                value={batchNo}
-                onChange={(e) => setBatchNo(Number(e.target.value))}
-                className="w-full border rounded px-3 py-2 mt-1"
+                {...register('batchNo', { valueAsNumber: true })}
+                className={`w-full border rounded px-3 py-2 mt-1 ${
+                  errors.batchNo ? 'border-red-500' : ''
+                }`}
                 min={1}
-                required
               />
+              {errors.batchNo && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.batchNo.message}
+                </p>
+              )}
             </div>
           </div>
           <div>
             <label className="block text-sm font-medium">Contest Name</label>
             <input
               type="text"
-              value={contestName}
-              onChange={(e) => setContestName(e.target.value)}
-              className="w-full border rounded px-3 py-2 mt-1"
-              required
+              {...register('contestName')}
+              className={`w-full border rounded px-3 py-2 mt-1 ${
+                errors.contestName ? 'border-red-500' : ''
+              }`}
             />
+            {errors.contestName && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.contestName.message}
+              </p>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium">Platform</label>
               <select
-                value={platform}
-                onChange={(e) =>
-                  setPlatform(e.target.value as Contest['platform'])
-                }
-                className="w-full border rounded px-3 py-2 mt-1"
-                required
+                {...register('platform')}
+                className={`w-full border rounded px-3 py-2 mt-1 ${
+                  errors.platform ? 'border-red-500' : ''
+                }`}
               >
+                <option value="">Select Platform</option>
                 <option value="Leetcode">Leetcode</option>
                 <option value="Vjudge">Vjudge</option>
               </select>
+              {errors.platform && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.platform.message}
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium">
                 Estimated Time (hours)
               </label>
               <input
-                type="text"
-                value={estimatedTime}
-                onChange={(e) => setEstimatedTime(e.target.value)}
-                className="w-full border rounded px-3 py-2 mt-1"
+                type="number"
+                {...register('estimatedTime', { valueAsNumber: true })}
+                className={`w-full border rounded px-3 py-2 mt-1 ${
+                  errors.estimatedTime ? 'border-red-500' : ''
+                }`}
                 placeholder="e.g. 2, 3.5"
-                required
+                min={1}
               />
+              {errors.estimatedTime && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.estimatedTime.message}
+                </p>
+              )}
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium">Status</label>
               <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value as Contest['status'])}
-                className="w-full border rounded px-3 py-2 mt-1"
-                required
+                {...register('status')}
+                className={`w-full border rounded px-3 py-2 mt-1 ${
+                  errors.status ? 'border-red-500' : ''
+                }`}
               >
                 <option value="TODO">To Do</option>
                 <option value="IN_PROGRESS">In Progress</option>
@@ -208,33 +241,39 @@ export default function ContestModal({
                 <option value="COMPLETED">Completed</option>
                 <option value="BLOCKED">Blocked</option>
               </select>
+              {errors.status && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.status.message}
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium">Priority</label>
               <select
-                value={priority}
-                onChange={(e) =>
-                  setPriority(e.target.value as Contest['priority'])
-                }
-                className="w-full border rounded px-3 py-2 mt-1"
-                required
+                {...register('priority')}
+                className={`w-full border rounded px-3 py-2 mt-1 ${
+                  errors.priority ? 'border-red-500' : ''
+                }`}
               >
                 <option value="NORMAL">Normal</option>
                 <option value="HIGH">High</option>
                 <option value="LOW">Low</option>
               </select>
+              {errors.priority && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.priority.message}
+                </p>
+              )}
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium">Assigned To</label>
               <select
-                value={assignedTo?._id || ''}
-                onChange={(e) =>
-                  setAssignedTo(users.find((u) => u._id === e.target.value))
-                }
-                className="w-full border rounded px-3 py-2 mt-1"
-                required
+                {...register('assignedTo')}
+                className={`w-full border rounded px-3 py-2 mt-1 ${
+                  errors.assignedTo ? 'border-red-500' : ''
+                }`}
               >
                 <option value="">Select User</option>
                 {users.map((user) => (
@@ -243,16 +282,19 @@ export default function ContestModal({
                   </option>
                 ))}
               </select>
+              {errors.assignedTo && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.assignedTo.message}
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium">Reported To</label>
               <select
-                value={reportedTo?._id || ''}
-                onChange={(e) =>
-                  setReportedTo(users.find((u) => u._id === e.target.value))
-                }
-                className="w-full border rounded px-3 py-2 mt-1"
-                required
+                {...register('reportedTo')}
+                className={`w-full border rounded px-3 py-2 mt-1 ${
+                  errors.reportedTo ? 'border-red-500' : ''
+                }`}
               >
                 <option value="">Select User</option>
                 {users.map((user) => (
@@ -261,6 +303,11 @@ export default function ContestModal({
                   </option>
                 ))}
               </select>
+              {errors.reportedTo && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.reportedTo.message}
+                </p>
+              )}
             </div>
           </div>
           <div className="flex justify-end gap-4 mt-6">
@@ -268,16 +315,16 @@ export default function ContestModal({
               type="button"
               onClick={onClose}
               className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105 font-medium cursor-pointer"
-              disabled={loading}
+              disabled={isSubmitting}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-lg shadow-md hover:from-indigo-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105 font-semibold cursor-pointer"
-              disabled={loading}
+              disabled={isSubmitting}
+              className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-lg shadow-md hover:from-indigo-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105 font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading
+              {isSubmitting
                 ? contest
                   ? 'Updating...'
                   : 'Creating...'

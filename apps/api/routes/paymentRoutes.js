@@ -7,12 +7,12 @@ import {
 } from '../controllers/paymentController.js';
 
 import { protect } from '../middleware/authMiddleware.js';
-import { admin } from '../middleware/adminMiddleware.js';
+import { requireRole } from '../middleware/roleMiddleware.js';
 
 const router = express.Router();
 
-// All payment routes are admin-only
-router.use(protect, admin);
+// Payment routes accessible by Admin and Manager
+router.use(protect, requireRole(['ADMIN', 'MANAGER']));
 
 router.route('/').get(getPayments).post(createPayment);
 

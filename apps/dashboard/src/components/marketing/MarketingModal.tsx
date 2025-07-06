@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import toast from 'react-hot-toast';
+import {
+  marketingTaskSchema,
+  type MarketingTaskFormData,
+} from '@/lib/validations';
 
 interface User {
   _id: string;
@@ -34,38 +40,61 @@ export default function MarketingTaskModal({
   users,
   task,
 }: MarketingTaskModalProps) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [status, setStatus] = useState<MarketingTask['status']>('TODO');
-  const [priority, setPriority] = useState<MarketingTask['priority']>('NORMAL');
-  const [dueDate, setDueDate] = useState('');
-  const [assignedTo, setAssignedTo] = useState<User | undefined>(undefined);
-  const [reportedTo, setReportedTo] = useState<User | undefined>(undefined);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<MarketingTaskFormData>({
+    resolver: zodResolver(marketingTaskSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      status: 'TODO',
+      priority: 'NORMAL',
+      dueDate: '',
+      assignedTo: '',
+      reportedTo: '',
+    },
+  });
 
   useEffect(() => {
-    setTitle(task?.title || '');
-    setDescription(task?.description || '');
-    setStatus(task?.status || 'TODO');
-    setPriority(task?.priority || 'NORMAL');
-    setDueDate(task?.dueDate || '');
-    setAssignedTo(task?.assignedTo);
-    setReportedTo(task?.reportedTo);
-  }, [task, isOpen]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title || !description || !dueDate || !assignedTo || !reportedTo) {
-      toast.error('Please fill all required fields.');
-      return;
+    if (task) {
+      reset({
+        title: task.title || '',
+        description: task.description || '',
+        status: task.status || 'TODO',
+        priority: task.priority || 'NORMAL',
+        dueDate: task.dueDate || '',
+        assignedTo: task.assignedTo?._id || '',
+        reportedTo: task.reportedTo?._id || '',
+      });
+    } else {
+      reset({
+        title: '',
+        description: '',
+        status: 'TODO',
+        priority: 'NORMAL',
+        dueDate: '',
+        assignedTo: '',
+        reportedTo: '',
+      });
     }
+  }, [task, isOpen, reset]);
+
+  const onSubmit = (data: MarketingTaskFormData) => {
+    // Find the user objects from the users array
+    const assignedUser = users.find((u) => u._id === data.assignedTo);
+    const reportedUser = users.find((u) => u._id === data.reportedTo);
+
     onSave({
-      title,
-      description,
-      status,
-      priority,
-      dueDate,
-      assignedTo,
-      reportedTo,
+      title: data.title,
+      description: data.description,
+      status: data.status,
+      priority: data.priority,
+      dueDate: data.dueDate,
+      assignedTo: assignedUser!,
+      reportedTo: reportedUser!,
       type: 'marketing',
     });
   };
@@ -88,37 +117,45 @@ export default function MarketingTaskModal({
         <h2 className="text-xl font-bold mb-4 cursor-pointer">
           {task ? 'Edit Task' : 'Create Task'}
         </h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label className="block text-sm font-medium">Task Title</label>
             <input
               type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full border rounded px-3 py-2 mt-1"
-              required
+              {...register('title')}
+              className={`w-full border rounded px-3 py-2 mt-1 ${
+                errors.title ? 'border-red-500' : ''
+              }`}
             />
+            {errors.title && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.title.message}
+              </p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium">Task Details</label>
             <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full border rounded px-3 py-2 mt-1"
+              {...register('description')}
+              className={`w-full border rounded px-3 py-2 mt-1 ${
+                errors.description ? 'border-red-500' : ''
+              }`}
               rows={3}
-              required
             />
+            {errors.description && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.description.message}
+              </p>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium">Task Status</label>
               <select
-                value={status}
-                onChange={(e) =>
-                  setStatus(e.target.value as MarketingTask['status'])
-                }
-                className="w-full border rounded px-3 py-2 mt-1"
-                required
+                {...register('status')}
+                className={`w-full border rounded px-3 py-2 mt-1 ${
+                  errors.status ? 'border-red-500' : ''
+                }`}
               >
                 <option value="TODO">To Do</option>
                 <option value="IN_PROGRESS">In Progress</option>
@@ -126,43 +163,54 @@ export default function MarketingTaskModal({
                 <option value="COMPLETED">Completed</option>
                 <option value="BLOCKED">Blocked</option>
               </select>
+              {errors.status && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.status.message}
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium">Task Priority</label>
               <select
-                value={priority}
-                onChange={(e) =>
-                  setPriority(e.target.value as MarketingTask['priority'])
-                }
-                className="w-full border rounded px-3 py-2 mt-1"
-                required
+                {...register('priority')}
+                className={`w-full border rounded px-3 py-2 mt-1 ${
+                  errors.priority ? 'border-red-500' : ''
+                }`}
               >
                 <option value="NORMAL">Normal</option>
                 <option value="HIGH">High</option>
                 <option value="LOW">Low</option>
               </select>
+              {errors.priority && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.priority.message}
+                </p>
+              )}
             </div>
           </div>
           <div>
             <label className="block text-sm font-medium">Due Date</label>
             <input
               type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              className="w-full border rounded px-3 py-2 mt-1"
-              required
+              {...register('dueDate')}
+              className={`w-full border rounded px-3 py-2 mt-1 ${
+                errors.dueDate ? 'border-red-500' : ''
+              }`}
             />
+            {errors.dueDate && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.dueDate.message}
+              </p>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium">Assigned To</label>
               <select
-                value={assignedTo?._id || ''}
-                onChange={(e) =>
-                  setAssignedTo(users.find((u) => u._id === e.target.value))
-                }
-                className="w-full border rounded px-3 py-2 mt-1"
-                required
+                {...register('assignedTo')}
+                className={`w-full border rounded px-3 py-2 mt-1 ${
+                  errors.assignedTo ? 'border-red-500' : ''
+                }`}
               >
                 <option value="">Select User</option>
                 {users.map((user) => (
@@ -171,16 +219,19 @@ export default function MarketingTaskModal({
                   </option>
                 ))}
               </select>
+              {errors.assignedTo && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.assignedTo.message}
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium">Reported To</label>
               <select
-                value={reportedTo?._id || ''}
-                onChange={(e) =>
-                  setReportedTo(users.find((u) => u._id === e.target.value))
-                }
-                className="w-full border rounded px-3 py-2 mt-1"
-                required
+                {...register('reportedTo')}
+                className={`w-full border rounded px-3 py-2 mt-1 ${
+                  errors.reportedTo ? 'border-red-500' : ''
+                }`}
               >
                 <option value="">Select User</option>
                 {users.map((user) => (
@@ -189,6 +240,11 @@ export default function MarketingTaskModal({
                   </option>
                 ))}
               </select>
+              {errors.reportedTo && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.reportedTo.message}
+                </p>
+              )}
             </div>
           </div>
           <div className="flex justify-end gap-4 mt-6">
@@ -201,9 +257,10 @@ export default function MarketingTaskModal({
             </button>
             <button
               type="submit"
-              className="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl font-medium cursor-pointer"
+              disabled={isSubmitting}
+              className="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Save Task
+              {isSubmitting ? 'Saving...' : 'Save Task'}
             </button>
           </div>
         </form>
