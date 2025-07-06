@@ -57,6 +57,20 @@ export const contestSchema = z.object({
     .optional(),
 });
 
+// Contest Video Solution validation schema
+export const problemSchema = z.object({
+  courseName: z.enum(['CPC', 'JIPC', 'Bootcamp']),
+  batchNo: z.number().min(1, 'Batch number must be at least 1'),
+  contestName: z.string().min(2, 'Contest name must be at least 2 characters'),
+  onlineJudge: z.string().min(1, 'Please select an online judge'),
+  status: z.enum(['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'COMPLETED', 'BLOCKED']),
+  priority: z.enum(['LOW', 'NORMAL', 'HIGH']),
+  assignedTo: z.string().min(1, 'Please select an assigned user'),
+  reportedTo: z.string().min(1, 'Please select a reported user'),
+  estimatedTime: z.string().min(1, 'Please enter estimated time'),
+  platform: z.enum(['Google Classroom', 'Website']),
+});
+
 // Marketing task validation schema
 export const marketingTaskSchema = z.object({
   title: z.string().min(2, 'Title must be at least 2 characters'),
@@ -104,6 +118,7 @@ export type UserFormData = z.infer<typeof userSchema>;
 export type UserProfileFormData = z.infer<typeof userProfileSchema>;
 export type PaymentFormData = z.infer<typeof paymentSchema>;
 export type ContestFormData = z.infer<typeof contestSchema>;
+export type ProblemFormData = z.infer<typeof problemSchema>;
 export type MarketingTaskFormData = z.infer<typeof marketingTaskSchema>;
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterFormData = z.infer<typeof registerSchema>;

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import toast from 'react-hot-toast';
-import { contestSchema, type ContestFormData } from '@/lib/validations';
+import { problemSchema, type ProblemFormData } from '@/lib/validations';
 import api from '@/lib/api';
 
 interface User {
@@ -11,109 +11,120 @@ interface User {
   profileImage?: string;
 }
 
-export interface Contest {
+export interface ContestVideoSolution {
   _id?: string;
   courseName: 'CPC' | 'JIPC' | 'Bootcamp';
   batchNo: number;
   contestName: string;
-  platform: 'Leetcode' | 'Vjudge';
+  onlineJudge: 'Leetcode' | 'Vjudge';
   status: 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'COMPLETED' | 'BLOCKED';
   priority: 'LOW' | 'NORMAL' | 'HIGH';
   assignedTo: User;
   reportedTo: User;
   estimatedTime: string;
+  platform: 'Google Classroom' | 'Website';
   createdAt?: string;
   updatedAt?: string;
 }
 
-interface ContestModalProps {
+interface ProblemModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (contest: Contest) => void;
+  onSave: (contestVideoSolution: ContestVideoSolution) => void;
   users: User[];
-  contest: Contest | null;
+  problem: ContestVideoSolution | null;
 }
 
-export default function ContestModal({
+export default function ProblemModal({
   isOpen,
   onClose,
   onSave,
   users,
-  contest,
-}: ContestModalProps) {
+  problem,
+}: ProblemModalProps) {
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<ContestFormData>({
-    resolver: zodResolver(contestSchema),
+  } = useForm<ProblemFormData>({
+    resolver: zodResolver(problemSchema),
     defaultValues: {
       courseName: 'CPC',
       batchNo: 1,
       contestName: '',
-      platform: '',
+      onlineJudge: '',
       status: 'TODO',
       priority: 'NORMAL',
       assignedTo: '',
       reportedTo: '',
-      estimatedTime: 1,
+      estimatedTime: '',
+      platform: 'Google Classroom',
     },
   });
 
   useEffect(() => {
-    if (contest) {
+    if (problem) {
       reset({
-        courseName: contest.courseName,
-        batchNo: contest.batchNo,
-        contestName: contest.contestName,
-        platform: contest.platform,
-        status: contest.status,
-        priority: contest.priority,
-        assignedTo: contest.assignedTo?._id || '',
-        reportedTo: contest.reportedTo?._id || '',
-        estimatedTime: Number(contest.estimatedTime) || 1,
+        courseName: problem.courseName,
+        batchNo: problem.batchNo,
+        contestName: problem.contestName,
+        onlineJudge: problem.onlineJudge,
+        status: problem.status,
+        priority: problem.priority,
+        assignedTo: problem.assignedTo?._id || '',
+        reportedTo: problem.reportedTo?._id || '',
+        estimatedTime: problem.estimatedTime,
+        platform: problem.platform,
       });
     } else {
       reset({
         courseName: 'CPC',
         batchNo: 1,
         contestName: '',
-        platform: '',
+        onlineJudge: '',
         status: 'TODO',
         priority: 'NORMAL',
         assignedTo: '',
         reportedTo: '',
-        estimatedTime: 1,
+        estimatedTime: '',
+        platform: 'Google Classroom',
       });
     }
-  }, [contest, isOpen, reset]);
+  }, [problem, isOpen, reset]);
 
-  const onSubmit = async (data: ContestFormData) => {
+  const onSubmit = async (data: ProblemFormData) => {
     try {
       const payload = {
         courseName: data.courseName,
         batchNo: data.batchNo,
         contestName: data.contestName,
-        platform: data.platform,
+        onlineJudge: data.onlineJudge,
         status: data.status,
         priority: data.priority,
         assignedTo: data.assignedTo,
         reportedTo: data.reportedTo,
         estimatedTime: data.estimatedTime,
+        platform: data.platform,
       };
       let response;
-      if (contest && contest._id) {
-        response = await api.put(`/contests/${contest._id}`, payload);
-        toast.success('Contest updated!');
+      if (problem && problem._id) {
+        response = await api.put(
+          `/contest-video-solutions/${problem._id}`,
+          payload,
+        );
+        toast.success('Contest video solution updated!');
       } else {
-        response = await api.post('/contests', payload);
-        toast.success('Contest created!');
+        response = await api.post('/contest-video-solutions', payload);
+        toast.success('Contest video solution created!');
       }
       onSave(response.data);
       onClose();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Failed to save contest.');
+      toast.error(
+        err?.response?.data?.message ||
+          'Failed to save contest video solution.',
+      );
     }
   };
 
@@ -133,7 +144,9 @@ export default function ContestModal({
         style={{ cursor: 'default' }}
       >
         <h2 className="text-xl font-bold mb-4 cursor-pointer">
-          {contest ? 'Edit Contest' : 'Create Contest'}
+          {problem
+            ? 'Edit Contest Video Solution'
+            : 'Create Contest Video Solution'}
         </h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -189,6 +202,24 @@ export default function ContestModal({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
+              <label className="block text-sm font-medium">Online Judge</label>
+              <select
+                {...register('onlineJudge')}
+                className={`w-full border rounded px-3 py-2 mt-1 ${
+                  errors.onlineJudge ? 'border-red-500' : ''
+                }`}
+              >
+                <option value="">Select Online Judge</option>
+                <option value="Leetcode">Leetcode</option>
+                <option value="Vjudge">Vjudge</option>
+              </select>
+              {errors.onlineJudge && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.onlineJudge.message}
+                </p>
+              )}
+            </div>
+            <div>
               <label className="block text-sm font-medium">Platform</label>
               <select
                 {...register('platform')}
@@ -196,9 +227,8 @@ export default function ContestModal({
                   errors.platform ? 'border-red-500' : ''
                 }`}
               >
-                <option value="">Select Platform</option>
-                <option value="Leetcode">Leetcode</option>
-                <option value="Vjudge">Vjudge</option>
+                <option value="Google Classroom">Google Classroom</option>
+                <option value="Website">Website</option>
               </select>
               {errors.platform && (
                 <p className="text-red-500 text-sm mt-1">
@@ -206,25 +236,24 @@ export default function ContestModal({
                 </p>
               )}
             </div>
-            <div>
-              <label className="block text-sm font-medium">
-                Estimated Time (hours)
-              </label>
-              <input
-                type="number"
-                {...register('estimatedTime', { valueAsNumber: true })}
-                className={`w-full border rounded px-3 py-2 mt-1 ${
-                  errors.estimatedTime ? 'border-red-500' : ''
-                }`}
-                placeholder="e.g. 2, 3.5"
-                min={1}
-              />
-              {errors.estimatedTime && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.estimatedTime.message}
-                </p>
-              )}
-            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium">
+              Estimated Time (hours)
+            </label>
+            <input
+              type="text"
+              {...register('estimatedTime')}
+              className={`w-full border rounded px-3 py-2 mt-1 ${
+                errors.estimatedTime ? 'border-red-500' : ''
+              }`}
+              placeholder="e.g. 2, 3.5"
+            />
+            {errors.estimatedTime && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.estimatedTime.message}
+              </p>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -325,10 +354,10 @@ export default function ContestModal({
               className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-lg shadow-md hover:from-indigo-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105 font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting
-                ? contest
+                ? problem
                   ? 'Updating...'
                   : 'Creating...'
-                : contest
+                : problem
                   ? 'Update'
                   : 'Create'}
             </button>

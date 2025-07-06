@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/solid';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
-import MarketingTaskModal from '@/components/marketing/MarketingModal';
+import MarketingTaskModal from '@/components/email-marketing/MarketingModal';
 
 interface User {
   _id: string;
@@ -49,7 +49,7 @@ export default function MarketingPage() {
     const fetchTasks = async () => {
       try {
         setIsLoading(true);
-        const res = await api.get('/marketing');
+        const res = await api.get('/email-marketing');
         setTasks(res.data);
       } catch (error) {
         console.error('Error fetching tasks:', error);
@@ -75,7 +75,7 @@ export default function MarketingPage() {
     try {
       if (taskToEdit) {
         // Update existing task
-        const res = await api.put(`/marketing/${taskToEdit._id}`, {
+        const res = await api.put(`/email-marketing/${taskToEdit._id}`, {
           ...task,
           type: 'marketing',
         });
@@ -85,7 +85,7 @@ export default function MarketingPage() {
         toast.success('Task updated');
       } else {
         // Create new task
-        const res = await api.post('/marketing', {
+        const res = await api.post('/email-marketing', {
           ...task,
           type: 'marketing',
         });
@@ -102,7 +102,7 @@ export default function MarketingPage() {
   const handleDelete = async (taskId: string) => {
     if (window.confirm('Are you sure you want to delete this task?')) {
       try {
-        await api.delete(`/marketing/${taskId}`);
+        await api.delete(`/email-marketing/${taskId}`);
         setTasks((prev) => prev.filter((t) => t._id !== taskId));
         toast.success('Task deleted');
       } catch (error) {
