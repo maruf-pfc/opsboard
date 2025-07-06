@@ -2,21 +2,48 @@ import mongoose from 'mongoose';
 
 const ClassSchema = new mongoose.Schema(
   {
-    title: {
+    courseName: {
       type: String,
-      required: [true, 'Please add a class title'],
+      enum: ['CPC', 'JIPC', 'Bootcamp'],
+      required: true,
     },
-    description: {
+    batchNo: {
+      type: Number,
+      required: true,
+    },
+    classNo: {
+      type: Number,
+      required: true,
+    },
+    classTitle: {
       type: String,
+      required: true,
     },
-    trainer: {
+    status: {
+      type: String,
+      enum: ['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'COMPLETED', 'BLOCKED'],
+      default: 'TODO',
+    },
+    priority: {
+      type: String,
+      enum: ['LOW', 'NORMAL', 'HIGH'],
+      default: 'NORMAL',
+    },
+    assignedTo: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },
+    reportedTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    description: {
+      type: String,
+    },
     schedule: {
       type: Date,
-      required: true,
     },
     // We can add enrolled students later if needed
     // students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]

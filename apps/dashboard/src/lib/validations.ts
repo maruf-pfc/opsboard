@@ -107,10 +107,16 @@ export const videoSchema = z.object({
 
 // Class validation schema
 export const classSchema = z.object({
-  title: z.string().min(2, 'Title must be at least 2 characters'),
-  trainer: z.string().min(1, 'Please select a trainer'),
-  schedule: z.string().min(1, 'Please select a schedule'),
+  courseName: z.enum(['CPC', 'JIPC', 'Bootcamp']),
+  batchNo: z.number().min(1, 'Batch number must be at least 1'),
+  classNo: z.number().min(1, 'Class number must be at least 1'),
+  classTitle: z.string().min(2, 'Class title must be at least 2 characters'),
+  status: z.enum(['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'COMPLETED', 'BLOCKED']),
+  priority: z.enum(['LOW', 'NORMAL', 'HIGH']),
+  assignedTo: z.string().min(1, 'Please select an assigned user'),
+  reportedTo: z.string().min(1, 'Please select a reported user'),
   description: z.string().optional(),
+  schedule: z.string().optional(),
 });
 
 // Type exports

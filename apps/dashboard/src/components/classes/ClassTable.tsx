@@ -32,13 +32,31 @@ export function ClassTable({ classes, onEdit, onUpdate }: ClassTableProps) {
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              Title
+              Class Title
             </th>
             <th
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              Trainer
+              Course
+            </th>
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Batch/Class
+            </th>
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Status
+            </th>
+            <th
+              scope="col"
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Assigned To
             </th>
             <th
               scope="col"
@@ -56,14 +74,39 @@ export function ClassTable({ classes, onEdit, onUpdate }: ClassTableProps) {
             <tr key={classItem._id}>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm font-medium text-gray-900">
-                  {classItem.title}
+                  {classItem.classTitle}
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {classItem.trainer.name}
+                {classItem.courseName}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {format(new Date(classItem.schedule), 'PPP p')}
+                Batch {classItem.batchNo} / Class {classItem.classNo}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <span
+                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                    classItem.status === 'COMPLETED'
+                      ? 'bg-green-100 text-green-800'
+                      : classItem.status === 'IN_PROGRESS'
+                        ? 'bg-blue-100 text-blue-800'
+                        : classItem.status === 'IN_REVIEW'
+                          ? 'bg-purple-100 text-purple-800'
+                          : classItem.status === 'BLOCKED'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-gray-100 text-gray-800'
+                  }`}
+                >
+                  {classItem.status.replace('_', ' ')}
+                </span>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {classItem.assignedTo.name}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {classItem.schedule
+                  ? format(new Date(classItem.schedule), 'PPP p')
+                  : 'Not scheduled'}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                 <button
