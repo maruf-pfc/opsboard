@@ -4,9 +4,27 @@ import Class from '../models/Class.js';
 export const getClasses = async (req, res) => {
   try {
     const classes = await Class.find()
-      .populate('trainer', 'name email')
-      .sort({ schedule: -1 });
+      .populate('assignedTo', 'name email profileImage')
+      .populate('reportedTo', 'name email profileImage')
+      .sort({ createdAt: -1 });
     res.status(200).json(classes);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// @desc    Get a single class
+export const getClass = async (req, res) => {
+  try {
+    const classItem = await Class.findById(req.params.id)
+      .populate('assignedTo', 'name email profileImage')
+      .populate('reportedTo', 'name email profileImage');
+
+    if (!classItem) {
+      return res.status(404).json({ error: 'Class not found' });
+    }
+
+    res.status(200).json(classItem);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
@@ -16,7 +34,10 @@ export const getClasses = async (req, res) => {
 export const createClass = async (req, res) => {
   try {
     const newClass = await Class.create(req.body);
-    res.status(201).json(newClass);
+    const populatedClass = await Class.findById(newClass._id)
+      .populate('assignedTo', 'name email profileImage')
+      .populate('reportedTo', 'name email profileImage');
+    res.status(201).json(populatedClass);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -29,7 +50,10 @@ export const updateClass = async (req, res) => {
       req.params.id,
       req.body,
       { new: true, runValidators: true },
-    );
+    )
+      .populate('assignedTo', 'name email profileImage')
+      .populate('reportedTo', 'name email profileImage');
+
     if (!updatedClass)
       return res.status(404).json({ error: 'Class not found' });
     res.status(200).json(updatedClass);

@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   getClasses,
+  getClass,
   createClass,
   updateClass,
   deleteClass,
@@ -14,6 +15,6 @@ router.use(protect);
 
 router.route('/').get(getClasses).post(createClass);
 
-router.route('/:id').put(updateClass).delete(deleteClass);
+router.route('/:id').get(getClass).put(updateClass).delete(deleteClass);
 
 export default router;
