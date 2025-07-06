@@ -23,12 +23,20 @@ import { useState } from 'react';
 // Define the navigation items in an array for easy mapping
 const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: ChartBarIcon },
-  { name: 'Tasks', href: '/tasks', icon: CheckBadgeIcon },
+  { name: 'Global Tasks', href: '/tasks', icon: CheckBadgeIcon },
   { name: 'Classes', href: '/classes', icon: AcademicCapIcon },
-  { name: 'Problem Solving', href: '/videos', icon: VideoCameraIcon },
-  { name: 'Contests', href: '/contests', icon: TrophyIcon },
+  {
+    name: 'Contest Video Solutions',
+    href: '/contest-video-solutions',
+    icon: VideoCameraIcon,
+  },
+  {
+    name: 'Programming Contests',
+    href: '/programming-contests',
+    icon: TrophyIcon,
+  },
   { name: 'Payments', href: '/payments', icon: CreditCardIcon },
-  { name: 'Email Marketing', href: '/marketing', icon: EnvelopeIcon },
+  { name: 'Email Marketing', href: '/email-marketing', icon: EnvelopeIcon },
 ];
 
 export function Sidebar() {

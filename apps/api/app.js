@@ -12,9 +12,11 @@ import authRoutes from './routes/authRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import classRoutes from './routes/classRoutes.js';
-import videoRoutes from './routes/videoRoutes.js';
+import videoRoutes from './routes/contestVideoSolutionsRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
-import marketingRoutes from './routes/marketingRoutes.js';
+import emailMarketingRoutes from './routes/emailMarketingRoutes.js';
+import contestVideoSolutionRoutes from './routes/contestVideoSolutionRoutes.js';
+import programmingContestRoutes from './routes/programmingContestRoutes.js';
 
 const app = express();
 
@@ -66,9 +68,10 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/tasks', taskRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/classes', classRoutes);
-app.use('/api/v1/videos', videoRoutes);
 app.use('/api/v1/payments', paymentRoutes);
-app.use('/api/v1/marketing', marketingRoutes);
+app.use('/api/v1/email-marketing', emailMarketingRoutes);
+app.use('/api/v1/contest-video-solutions', contestVideoSolutionRoutes);
+app.use('/api/v1/programming-contests', programmingContestRoutes);
 
 // Global Error Handler Middleware (MUST be last)
 app.use(errorHandler);

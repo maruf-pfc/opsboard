@@ -25,7 +25,7 @@ export default function VideosPage() {
   const fetchVideos = async () => {
     setIsLoading(true);
     try {
-      const { data } = await api.get('/videos');
+      const { data } = await api.get('/contest-video-solutions');
       setVideos(data);
     } catch (error) {
       toast.error('Failed to fetch videos.');

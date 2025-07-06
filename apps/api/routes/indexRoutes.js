@@ -1,7 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import asyncHandler from '../utils/asyncHandler.js';
-import contestRoutes from './contestRoutes.js';
+import programmingContestRoutes from './programmingContestRoutes.js';
 
 const router = express.Router();
 
@@ -89,6 +89,7 @@ router.get(
   }),
 );
 
-router.use('/api/v1/contests', contestRoutes);
+// Optionally expose programming contests from index
+router.use('/api/v1/programming-contests', programmingContestRoutes);
 
 export default router;
