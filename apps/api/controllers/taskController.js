@@ -1,119 +1,252 @@
 import Task from '../models/Task.js';
+import asyncHandler from '../utils/asyncHandler.js';
 
-export const createTask = async (req, res) => {
-  try {
-    // Accept all unified fields
-    const {
-      title,
-      description,
-      status,
-      priority,
-      startDate,
-      dueDate,
-      estimatedTime,
-      assignedTo,
-      type,
-      courseName,
-      batchNo,
-      contestName,
-      parentTask,
-    } = req.body;
-    const task = new Task({
-      title,
-      description,
-      status,
-      priority,
-      startDate,
-      dueDate,
-      estimatedTime,
-      assignedTo,
-      reportedTo: req.user.id,
-      type,
-      courseName,
-      batchNo,
-      contestName,
-      parentTask,
-    });
-    await task.save();
-    res.status(201).json(task);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
+// @desc    Get all tasks
+// @route   GET /api/tasks
+// @access  Private
+const getAllTasks = asyncHandler(async (req, res) => {
+  const tasks = await Task.find({})
+    .populate('assignedTo', 'name email profileImage')
+    .populate('reportedTo', 'name email profileImage')
+    .populate('comments.author', 'name email profileImage')
+    .sort({ createdAt: -1 });
 
-export const getTasks = async (req, res) => {
-  try {
-    const tasks = await Task.find({ parentTask: null }) // only get top-level tasks
-      .populate('assignedTo', 'name email')
-      .sort({ createdAt: -1 });
-    res.status(200).json(tasks);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+  res.json(tasks);
+});
 
-// @desc    Get single task by ID with details
+// @desc    Get single task
 // @route   GET /api/tasks/:id
-export const getTaskById = async (req, res) => {
-  try {
-    const task = await Task.findById(req.params.id)
-      .populate('assignedTo', 'name email')
-      .populate('reportedTo', 'name email')
-      .populate({
-        path: 'subtasks',
-        populate: { path: 'assignedTo', select: 'name email' },
-      })
-      .populate({
-        path: 'comments',
-        populate: { path: 'author', select: 'name email' },
-        options: { sort: { createdAt: 'desc' } },
-      });
+// @access  Private
+const getTask = asyncHandler(async (req, res) => {
+  const task = await Task.findById(req.params.id)
+    .populate('assignedTo', 'name email profileImage')
+    .populate('reportedTo', 'name email profileImage')
+    .populate('comments.author', 'name email profileImage');
 
-    if (!task) {
-      return res.status(404).json({ error: 'Task not found' });
-    }
-    res.status(200).json(task);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  if (!task) {
+    res.status(404);
+    throw new Error('Task not found');
   }
-};
 
-export const updateTask = async (req, res) => {
-  try {
-    // Accept all unified fields
-    const updateFields = {
-      title: req.body.title,
-      description: req.body.description,
-      status: req.body.status,
-      priority: req.body.priority,
-      startDate: req.body.startDate,
-      dueDate: req.body.dueDate,
-      estimatedTime: req.body.estimatedTime,
-      assignedTo: req.body.assignedTo,
-      type: req.body.type,
-      courseName: req.body.courseName,
-      batchNo: req.body.batchNo,
-      contestName: req.body.contestName,
-      parentTask: req.body.parentTask,
-    };
-    const task = await Task.findByIdAndUpdate(req.params.id, updateFields, {
-      new: true,
-      runValidators: true,
-    });
-    if (!task) return res.status(404).json({ error: 'Task not found' });
-    res.status(200).json(task);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
+  res.json(task);
+});
 
-export const deleteTask = async (req, res) => {
-  try {
-    const task = await Task.findByIdAndDelete(req.params.id);
-    if (!task) return res.status(404).json({ error: 'Task not found' });
-    // Optional: Also delete subtasks
-    res.status(200).json({ message: 'Task deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+// @desc    Create new task
+// @route   POST /api/tasks
+// @access  Private
+const createTask = asyncHandler(async (req, res) => {
+  const {
+    title,
+    description,
+    status,
+    priority,
+    assignedTo,
+    reportedTo,
+    courseName,
+    batchNo,
+    startDate,
+    dueDate,
+    estimatedTime,
+  } = req.body;
+
+  const task = await Task.create({
+    title,
+    description,
+    status,
+    priority,
+    assignedTo,
+    reportedTo,
+    courseName,
+    batchNo,
+    startDate,
+    dueDate,
+    estimatedTime,
+  });
+
+  const populatedTask = await Task.findById(task._id)
+    .populate('assignedTo', 'name email profileImage')
+    .populate('reportedTo', 'name email profileImage')
+    .populate('comments.author', 'name email profileImage');
+
+  res.status(201).json(populatedTask);
+});
+
+// @desc    Update task
+// @route   PUT /api/tasks/:id
+// @access  Private
+const updateTask = asyncHandler(async (req, res) => {
+  const {
+    title,
+    description,
+    status,
+    priority,
+    assignedTo,
+    reportedTo,
+    courseName,
+    batchNo,
+    startDate,
+    dueDate,
+    estimatedTime,
+  } = req.body;
+
+  const task = await Task.findById(req.params.id);
+
+  if (!task) {
+    res.status(404);
+    throw new Error('Task not found');
   }
+
+  const updatedTask = await Task.findByIdAndUpdate(
+    req.params.id,
+    {
+      title,
+      description,
+      status,
+      priority,
+      assignedTo,
+      reportedTo,
+      courseName,
+      batchNo,
+      startDate,
+      dueDate,
+      estimatedTime,
+    },
+    { new: true, runValidators: true },
+  )
+    .populate('assignedTo', 'name email profileImage')
+    .populate('reportedTo', 'name email profileImage')
+    .populate('comments.author', 'name email profileImage');
+
+  res.json(updatedTask);
+});
+
+// @desc    Delete task
+// @route   DELETE /api/tasks/:id
+// @access  Private
+const deleteTask = asyncHandler(async (req, res) => {
+  const task = await Task.findById(req.params.id);
+
+  if (!task) {
+    res.status(404);
+    throw new Error('Task not found');
+  }
+
+  await Task.findByIdAndDelete(req.params.id);
+
+  res.json({ message: 'Task removed' });
+});
+
+// @desc    Add comment to task
+// @route   POST /api/tasks/:id/comments
+// @access  Private
+const addComment = asyncHandler(async (req, res) => {
+  const { content, parentId } = req.body;
+
+  const task = await Task.findById(req.params.id);
+
+  if (!task) {
+    res.status(404);
+    throw new Error('Task not found');
+  }
+
+  task.comments.push({
+    content,
+    author: req.user._id,
+    parentId: parentId || null,
+  });
+
+  await task.save();
+
+  const populatedTask = await Task.findById(task._id)
+    .populate('assignedTo', 'name email profileImage')
+    .populate('reportedTo', 'name email profileImage')
+    .populate('comments.author', 'name email profileImage');
+
+  res.json(populatedTask);
+});
+
+// @desc    Update comment
+// @route   PUT /api/tasks/:id/comments/:commentId
+// @access  Private
+const updateComment = asyncHandler(async (req, res) => {
+  const { content } = req.body;
+
+  const task = await Task.findById(req.params.id);
+
+  if (!task) {
+    res.status(404);
+    throw new Error('Task not found');
+  }
+
+  const comment = task.comments.id(req.params.commentId);
+
+  if (!comment) {
+    res.status(404);
+    throw new Error('Comment not found');
+  }
+
+  // Check if user is the author of the comment
+  if (comment.author.toString() !== req.user._id.toString()) {
+    res.status(403);
+    throw new Error('Not authorized to update this comment');
+  }
+
+  comment.content = content;
+  await task.save();
+
+  const populatedTask = await Task.findById(task._id)
+    .populate('assignedTo', 'name email profileImage')
+    .populate('reportedTo', 'name email profileImage')
+    .populate('comments.author', 'name email profileImage');
+
+  res.json(populatedTask);
+});
+
+// @desc    Delete comment
+// @route   DELETE /api/tasks/:id/comments/:commentId
+// @access  Private
+const deleteComment = asyncHandler(async (req, res) => {
+  const task = await Task.findById(req.params.id);
+
+  if (!task) {
+    res.status(404);
+    throw new Error('Task not found');
+  }
+
+  const comment = task.comments.id(req.params.commentId);
+
+  if (!comment) {
+    res.status(404);
+    throw new Error('Comment not found');
+  }
+
+  // Check if user is the author of the comment or admin
+  if (
+    comment.author.toString() !== req.user._id.toString() &&
+    req.user.role !== 'ADMIN'
+  ) {
+    res.status(403);
+    throw new Error('Not authorized to delete this comment');
+  }
+
+  comment.remove();
+  await task.save();
+
+  const populatedTask = await Task.findById(task._id)
+    .populate('assignedTo', 'name email profileImage')
+    .populate('reportedTo', 'name email profileImage')
+    .populate('comments.author', 'name email profileImage');
+
+  res.json(populatedTask);
+});
+
+export {
+  getAllTasks,
+  getTask,
+  createTask,
+  updateTask,
+  deleteTask,
+  addComment,
+  updateComment,
+  deleteComment,
 };

@@ -51,22 +51,6 @@ export function AdminPaymentStats({ stats }: { stats: any }) {
           colorClass="bg-green-500"
         />
       </div>
-      {lastMonth && (
-        <div className="mt-6">
-          <h3 className="text-lg font-semibold mb-2 text-gray-700">
-            Payment Analytics (Last 1 Month)
-          </h3>
-          <ul className="space-y-1">
-            <li>
-              {lastMonth._id}:{' '}
-              <span className="font-bold">
-                ${lastMonth.totalPaid.toFixed(2)}
-              </span>{' '}
-              ({lastMonth.count} payments)
-            </li>
-          </ul>
-        </div>
-      )}
     </div>
   );
 }

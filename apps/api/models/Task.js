@@ -2,8 +2,15 @@ import mongoose from 'mongoose';
 
 const TaskSchema = new mongoose.Schema(
   {
-    title: { type: String, required: true },
-    description: { type: String },
+    title: {
+      type: String,
+      required: [true, 'Task title is required'],
+      trim: true,
+    },
+    description: {
+      type: String,
+      trim: true,
+    },
     status: {
       type: String,
       enum: ['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'COMPLETED', 'BLOCKED'],
@@ -11,36 +18,74 @@ const TaskSchema = new mongoose.Schema(
     },
     priority: {
       type: String,
-      enum: ['HIGH', 'NORMAL', 'LOW'],
+      enum: ['LOW', 'NORMAL', 'HIGH'],
       default: 'NORMAL',
     },
-    startDate: { type: Date },
-    dueDate: { type: Date },
-    estimatedTime: { type: Number }, // In minutes
-
-    assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    assignedTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: [true, 'Assigned to is required'],
+    },
     reportedTo: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
-    },
-
-    // Context fields
-    type: {
-      type: String,
-      enum: ['class', 'video', 'payment', 'contest', 'general', 'marketing'],
-      default: 'general',
+      required: [true, 'Reported to is required'],
     },
     courseName: {
       type: String,
       enum: ['CPC', 'JIPC', 'Bootcamp'],
-      required: false,
     },
-    batchNo: { type: String },
-    contestName: { type: String },
-
-    // Self-relation for subtasks
-    parentTask: { type: mongoose.Schema.Types.ObjectId, ref: 'Task' },
+    batchNo: {
+      type: String,
+      trim: true,
+    },
+    startDate: {
+      type: Date,
+    },
+    dueDate: {
+      type: Date,
+    },
+    estimatedTime: {
+      type: Number, // in minutes
+    },
+    comments: [
+      {
+        content: {
+          type: String,
+          required: true,
+        },
+        author: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+          required: true,
+        },
+        parentId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Comment',
+          default: null,
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    subtasks: [
+      {
+        title: {
+          type: String,
+          required: true,
+        },
+        completed: {
+          type: Boolean,
+          default: false,
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   {
     timestamps: true,
@@ -49,19 +94,10 @@ const TaskSchema = new mongoose.Schema(
   },
 );
 
-// Virtual property to get subtasks
-TaskSchema.virtual('subtasks', {
-  ref: 'Task',
-  localField: '_id',
-  foreignField: 'parentTask',
-});
-
-// Virtual property to get comments
-TaskSchema.virtual('comments', {
-  ref: 'Comment',
-  localField: '_id',
-  foreignField: 'task',
-});
+// Index for better query performance
+TaskSchema.index({ status: 1, priority: 1, type: 1 });
+TaskSchema.index({ assignedTo: 1 });
+TaskSchema.index({ reportedTo: 1 });
 
 const Task = mongoose.model('Task', TaskSchema);
 export default Task;

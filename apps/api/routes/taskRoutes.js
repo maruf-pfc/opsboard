@@ -1,24 +1,30 @@
 import express from 'express';
 import {
   createTask,
-  getTasks,
-  getTaskById,
+  getAllTasks,
+  getTask,
   updateTask,
   deleteTask,
+  addComment,
+  updateComment,
+  deleteComment,
 } from '../controllers/taskController.js';
 
 import { protect } from '../middleware/authMiddleware.js';
-import commentRouter from './commentRoutes.js';
 
 const router = express.Router();
-
-// Nested comment routes
-router.use('/:taskId/comments', commentRouter);
 
 // All task routes below are protected
 router.use(protect);
 
-router.route('/').post(createTask).get(getTasks);
-router.route('/:id').get(getTaskById).put(updateTask).delete(deleteTask);
+router.route('/').post(createTask).get(getAllTasks);
+router.route('/:id').get(getTask).put(updateTask).delete(deleteTask);
+
+// Comment routes
+router.route('/:id/comments').post(addComment);
+router
+  .route('/:id/comments/:commentId')
+  .put(updateComment)
+  .delete(deleteComment);
 
 export default router;

@@ -1,4 +1,5 @@
 import Class from '../models/Class.js';
+import Task from '../models/Task.js';
 
 // @desc    Get all classes
 export const getClasses = async (req, res) => {
@@ -37,6 +38,26 @@ export const createClass = async (req, res) => {
     const populatedClass = await Class.findById(newClass._id)
       .populate('assignedTo', 'name email profileImage')
       .populate('reportedTo', 'name email profileImage');
+
+    // Create a corresponding task for the global tasks page
+    const taskData = {
+      title: `${req.body.classTitle} - ${req.body.courseName} Batch ${req.body.batchNo}`,
+      description:
+        req.body.description ||
+        `Class ${req.body.classNo} for ${req.body.courseName} Batch ${req.body.batchNo}`,
+      status: req.body.status,
+      priority: req.body.priority,
+      assignedTo: req.body.assignedTo,
+      reportedTo: req.body.reportedTo,
+      type: 'classes',
+      courseName: req.body.courseName,
+      batchNo: req.body.batchNo.toString(),
+      startDate: req.body.schedule,
+      dueDate: req.body.schedule,
+    };
+
+    await Task.create(taskData);
+
     res.status(201).json(populatedClass);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -56,6 +77,33 @@ export const updateClass = async (req, res) => {
 
     if (!updatedClass)
       return res.status(404).json({ error: 'Class not found' });
+
+    // Update the corresponding task
+    const taskTitle = `${req.body.classTitle} - ${req.body.courseName} Batch ${req.body.batchNo}`;
+    const taskDescription =
+      req.body.description ||
+      `Class ${req.body.classNo} for ${req.body.courseName} Batch ${req.body.batchNo}`;
+
+    await Task.findOneAndUpdate(
+      {
+        type: 'classes',
+        courseName: req.body.courseName,
+        batchNo: req.body.batchNo.toString(),
+        title: { $regex: req.body.classTitle, $options: 'i' },
+      },
+      {
+        title: taskTitle,
+        description: taskDescription,
+        status: req.body.status,
+        priority: req.body.priority,
+        assignedTo: req.body.assignedTo,
+        reportedTo: req.body.reportedTo,
+        startDate: req.body.schedule,
+        dueDate: req.body.schedule,
+      },
+      { new: true },
+    );
+
     res.status(200).json(updatedClass);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -68,6 +116,15 @@ export const deleteClass = async (req, res) => {
     const deletedClass = await Class.findByIdAndDelete(req.params.id);
     if (!deletedClass)
       return res.status(404).json({ error: 'Class not found' });
+
+    // Delete the corresponding task
+    await Task.findOneAndDelete({
+      type: 'classes',
+      courseName: deletedClass.courseName,
+      batchNo: deletedClass.batchNo.toString(),
+      title: { $regex: deletedClass.classTitle, $options: 'i' },
+    });
+
     res.status(200).json({ message: 'Class deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
