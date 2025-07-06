@@ -9,18 +9,23 @@ import {
 
 import { protect } from '../middleware/authMiddleware.js';
 import { admin } from '../middleware/adminMiddleware.js';
+import {
+  canViewUser,
+  canModifyUser,
+  requireRole,
+} from '../middleware/roleMiddleware.js';
 
 const router = express.Router();
 
-// 🛡️ Admin-only access to get all users
-router.route('/').get(protect, admin, getUsers);
+// 🛡️ Admin and Manager access to get all users
+router.route('/').get(protect, requireRole(['ADMIN', 'MANAGER']), getUsers);
 
 // Admin routes
 router.route('/:id/role').put(protect, admin, updateUserRole);
 router.route('/:id').delete(protect, admin, deleteUser);
 
-// User routes
-router.route('/:id').get(protect, getUserById);
-router.route('/:id/profile').put(protect, updateUserProfile);
+// User routes with enhanced security
+router.route('/:id').get(protect, canViewUser, getUserById);
+router.route('/:id/profile').put(protect, canModifyUser, updateUserProfile);
 
 export default router;

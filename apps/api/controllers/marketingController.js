@@ -48,7 +48,7 @@ export const createMarketingTask = async (req, res) => {
       reportedTo,
     });
     await task.save();
-    const populatedTask = await task
+    const populatedTask = await MarketingTask.findById(task._id)
       .populate('assignedTo', 'name email profileImage')
       .populate('reportedTo', 'name email profileImage');
     res.status(201).json(populatedTask);

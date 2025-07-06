@@ -147,126 +147,126 @@ export default function ContestsPage() {
         </button>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-7 w-full">
-        {Object.entries(statusMeta).map(([status, meta]) => (
-          <div key={status} className="flex flex-col h-full">
-            {/* Status Header */}
-            <div
-              className={`flex items-center gap-2 mb-4 px-3 py-2 rounded-xl bg-gradient-to-r ${meta.color} shadow-md text-white font-bold text-lg sticky top-0 z-10`}
-            >
-              <meta.icon className="h-6 w-6 mr-1 opacity-90" />
-              <span>{meta.label}</span>
-              <span className="ml-auto text-sm font-medium bg-white/20 px-2 py-0.5 rounded-full">
-                {contests.filter((c) => c.status === status).length}
-              </span>
-            </div>
-            <div className="space-y-5 flex-1 min-h-[120px]">
-              {contests.filter((c) => c.status === status).length === 0 && (
-                <div className="text-center text-gray-400 italic py-8">
-                  No contests
-                </div>
-              )}
-              {contests
-                .filter((c) => c.status === status)
-                .map((contest) => {
-                  const PriorityIcon = priorityMeta[contest.priority].icon;
-                  return (
-                    <button
-                      key={contest._id}
-                      className="w-full text-left bg-white/80 backdrop-blur-md border border-gray-100 rounded-2xl shadow-lg p-5 flex flex-col gap-2 transition-all duration-200 hover:shadow-2xl hover:scale-[1.025] focus:ring-2 focus:ring-indigo-400 focus:outline-none cursor-pointer group max-w-full"
-                      onClick={() => {
-                        setContestToEdit(contest);
-                        setIsModalOpen(true);
-                      }}
-                      aria-label={`Edit contest ${contest.contestName}`}
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <AcademicCapIcon className="h-5 w-5 text-indigo-500 shrink-0" />
-                          <span className="font-bold text-lg text-gray-800 group-hover:text-indigo-700 transition-colors truncate max-w-[10rem]">
-                            {contest.contestName}
-                          </span>
-                        </div>
-                        <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold shadow-sm ${priorityMeta[contest.priority].color}`}
-                        >
-                          <PriorityIcon className="h-4 w-4" />
-                          {priorityMeta[contest.priority].label}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-2 text-xs text-gray-500 mt-1 w-full break-words">
-                        <span className="inline-flex items-center gap-1">
-                          <CalendarIcon className="h-4 w-4" />
-                          {contest.createdAt
-                            ? format(new Date(contest.createdAt), 'PP')
-                            : '—'}
-                        </span>
-                        <span className="inline-flex items-center gap-1">
-                          <ClockIcon className="h-4 w-4" />
-                          {contest.estimatedTime}h
-                        </span>
-                        <span className="inline-flex items-center gap-1">
-                          <span className="font-semibold">Batch:</span>{' '}
-                          {contest.batchNo}
-                        </span>
-                        <span className="inline-flex items-center gap-1">
-                          <span className="font-semibold">Course:</span>{' '}
-                          {contest.courseName}
-                        </span>
-                        <span className="inline-flex items-center gap-1">
-                          <span className="font-semibold">Platform:</span>{' '}
-                          {contest.platform}
-                        </span>
-                      </div>
-                      <div className="flex items-start gap-4 mt-2 flex-col w-full">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="text-xs text-gray-500">
-                            Assigned:
-                          </span>
-                          {contest.assignedTo?.profileImage ? (
-                            <img
-                              src={contest.assignedTo.profileImage}
-                              alt={contest.assignedTo.name}
-                              className="w-7 h-7 rounded-full object-cover border-2 border-indigo-200"
-                            />
-                          ) : (
-                            <span className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-700 border-2 border-indigo-200">
-                              {contest.assignedTo?.name
-                                ?.charAt(0)
-                                .toUpperCase()}
+        {Object.entries(statusMeta)
+          .filter(
+            ([status]) =>
+              contests.filter((c) => c.status === status).length > 0,
+          )
+          .map(([status, meta]) => (
+            <div key={status} className="flex flex-col h-full">
+              {/* Status Header */}
+              <div
+                className={`flex items-center gap-2 mb-4 px-3 py-2 rounded-xl bg-gradient-to-r ${meta.color} shadow-md text-white font-bold text-lg sticky top-0 z-10`}
+              >
+                <meta.icon className="h-6 w-6 mr-1 opacity-90" />
+                <span>{meta.label}</span>
+                <span className="ml-auto text-sm font-medium bg-white/20 px-2 py-0.5 rounded-full">
+                  {contests.filter((c) => c.status === status).length}
+                </span>
+              </div>
+              <div className="space-y-5 flex-1 min-h-[120px]">
+                {contests
+                  .filter((c) => c.status === status)
+                  .map((contest) => {
+                    const PriorityIcon = priorityMeta[contest.priority].icon;
+                    return (
+                      <button
+                        key={contest._id}
+                        className="w-full text-left bg-white/80 backdrop-blur-md border border-gray-100 rounded-2xl shadow-lg p-5 flex flex-col gap-2 transition-all duration-200 hover:shadow-2xl hover:scale-[1.025] focus:ring-2 focus:ring-indigo-400 focus:outline-none cursor-pointer group max-w-full"
+                        onClick={() => {
+                          setContestToEdit(contest);
+                          setIsModalOpen(true);
+                        }}
+                        aria-label={`Edit contest ${contest.contestName}`}
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <AcademicCapIcon className="h-5 w-5 text-indigo-500 shrink-0" />
+                            <span className="font-bold text-lg text-gray-800 group-hover:text-indigo-700 transition-colors truncate max-w-[10rem]">
+                              {contest.contestName}
                             </span>
-                          )}
-                          <span className="font-medium text-xs text-gray-700 truncate max-w-[8rem]">
-                            {contest.assignedTo?.name}
+                          </div>
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold shadow-sm ${priorityMeta[contest.priority].color}`}
+                          >
+                            <PriorityIcon className="h-4 w-4" />
+                            {priorityMeta[contest.priority].label}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="text-xs text-gray-500">
-                            Reported:
+                        <div className="flex flex-wrap gap-2 text-xs text-gray-500 mt-1 w-full break-words">
+                          <span className="inline-flex items-center gap-1">
+                            <CalendarIcon className="h-4 w-4" />
+                            {contest.createdAt
+                              ? format(new Date(contest.createdAt), 'PP')
+                              : '—'}
                           </span>
-                          {contest.reportedTo?.profileImage ? (
-                            <img
-                              src={contest.reportedTo.profileImage}
-                              alt={contest.reportedTo.name}
-                              className="w-7 h-7 rounded-full object-cover border-2 border-pink-200"
-                            />
-                          ) : (
-                            <span className="w-7 h-7 rounded-full bg-pink-100 flex items-center justify-center font-bold text-pink-700 border-2 border-pink-200">
-                              {contest.reportedTo?.name
-                                ?.charAt(0)
-                                .toUpperCase()}
+                          <span className="inline-flex items-center gap-1">
+                            <ClockIcon className="h-4 w-4" />
+                            {contest.estimatedTime}h
+                          </span>
+                          <span className="inline-flex items-center gap-1">
+                            <span className="font-semibold">Batch:</span>{' '}
+                            {contest.batchNo}
+                          </span>
+                          <span className="inline-flex items-center gap-1">
+                            <span className="font-semibold">Course:</span>{' '}
+                            {contest.courseName}
+                          </span>
+                          <span className="inline-flex items-center gap-1">
+                            <span className="font-semibold">Platform:</span>{' '}
+                            {contest.platform}
+                          </span>
+                        </div>
+                        <div className="flex items-start gap-4 mt-2 flex-col w-full">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-xs text-gray-500">
+                              Assigned:
                             </span>
-                          )}
-                          <span className="font-medium text-gray-700 text-xs truncate max-w-[8rem]">
-                            {contest.reportedTo?.name}
-                          </span>
+                            {contest.assignedTo?.profileImage ? (
+                              <img
+                                src={contest.assignedTo.profileImage}
+                                alt={contest.assignedTo.name}
+                                className="w-7 h-7 rounded-full object-cover border-2 border-indigo-200"
+                              />
+                            ) : (
+                              <span className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-700 border-2 border-indigo-200">
+                                {contest.assignedTo?.name
+                                  ?.charAt(0)
+                                  .toUpperCase()}
+                              </span>
+                            )}
+                            <span className="font-medium text-xs text-gray-700 truncate max-w-[8rem]">
+                              {contest.assignedTo?.name}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-xs text-gray-500">
+                              Reported:
+                            </span>
+                            {contest.reportedTo?.profileImage ? (
+                              <img
+                                src={contest.reportedTo.profileImage}
+                                alt={contest.reportedTo.name}
+                                className="w-7 h-7 rounded-full object-cover border-2 border-pink-200"
+                              />
+                            ) : (
+                              <span className="w-7 h-7 rounded-full bg-pink-100 flex items-center justify-center font-bold text-pink-700 border-2 border-pink-200">
+                                {contest.reportedTo?.name
+                                  ?.charAt(0)
+                                  .toUpperCase()}
+                              </span>
+                            )}
+                            <span className="font-medium text-gray-700 text-xs truncate max-w-[8rem]">
+                              {contest.reportedTo?.name}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    </button>
-                  );
-                })}
+                      </button>
+                    );
+                  })}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
       </div>
       <ContestModal
         isOpen={isModalOpen}

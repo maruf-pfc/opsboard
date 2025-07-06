@@ -1,9 +1,12 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
+import { userProfileSchema, type UserProfileFormData } from '@/lib/validations';
 
 export default function UserProfilePage() {
   const { user, isLoading } = useAuth();
@@ -11,17 +14,26 @@ export default function UserProfilePage() {
   const params = useParams();
   const userId = params?.id as string;
   const [profile, setProfile] = useState<any>(null);
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    facebookUrl: '',
-    password: '',
-    profileImage: '',
-  });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<UserProfileFormData>({
+    resolver: zodResolver(userProfileSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      phone: '',
+      facebookUrl: '',
+      password: '',
+      profileImage: '',
+    },
+  });
 
   useEffect(() => {
     if (!isLoading && user && user.role === 'MEMBER') {
@@ -36,7 +48,7 @@ export default function UserProfilePage() {
       .get(`/users/${userId}`)
       .then(({ data }) => {
         setProfile(data);
-        setForm({
+        reset({
           name: data.name || '',
           email: data.email || '',
           phone: data.phone || '',
@@ -48,7 +60,7 @@ export default function UserProfilePage() {
       })
       .catch(() => toast.error('Failed to load user profile'))
       .finally(() => setLoading(false));
-  }, [userId]);
+  }, [userId, reset]);
 
   if (isLoading || loading || !user) return <div>Loading...</div>;
   if (!profile) return <div>User not found.</div>;
@@ -61,29 +73,22 @@ export default function UserProfilePage() {
     return null;
   }
 
-  const handleChange = (e: any) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
   const handleImageChange = (e: any) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setForm((prev) => ({ ...prev, profileImage: reader.result as string }));
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
+  const onSubmit = async (data: UserProfileFormData) => {
     try {
-      const updateData: any = { ...form };
-      if (!form.profileImage) delete updateData.profileImage;
-      if (!form.password) delete updateData.password;
+      const updateData: any = { ...data };
+      if (!data.profileImage) delete updateData.profileImage;
+      if (!data.password) delete updateData.password;
       await api.put(`/users/${userId}/profile`, updateData);
       toast.success('Profile updated!');
       router.refresh();
@@ -95,7 +100,7 @@ export default function UserProfilePage() {
   return (
     <div className="max-w-xl mx-auto bg-white rounded-lg shadow p-8 mt-8">
       <h1 className="text-2xl font-bold mb-6 text-center">Update Profile</h1>
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
             {imagePreview ? (
@@ -131,11 +136,14 @@ export default function UserProfilePage() {
           </label>
           <input
             type="text"
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm"
+            {...register('name')}
+            className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+              errors.name ? 'border-red-500' : 'border-gray-300'
+            }`}
           />
+          {errors.name && (
+            <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+          )}
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">
@@ -143,11 +151,14 @@ export default function UserProfilePage() {
           </label>
           <input
             type="email"
-            name="email"
-            value={form.email}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm"
+            {...register('email')}
+            className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+              errors.email ? 'border-red-500' : 'border-gray-300'
+            }`}
           />
+          {errors.email && (
+            <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+          )}
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">
@@ -155,11 +166,12 @@ export default function UserProfilePage() {
           </label>
           <input
             type="text"
-            name="phone"
-            value={form.phone}
-            onChange={handleChange}
+            {...register('phone')}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm"
           />
+          {errors.phone && (
+            <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
+          )}
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">
@@ -167,11 +179,16 @@ export default function UserProfilePage() {
           </label>
           <input
             type="text"
-            name="facebookUrl"
-            value={form.facebookUrl}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm"
+            {...register('facebookUrl')}
+            className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+              errors.facebookUrl ? 'border-red-500' : 'border-gray-300'
+            }`}
           />
+          {errors.facebookUrl && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.facebookUrl.message}
+            </p>
+          )}
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">
@@ -179,17 +196,21 @@ export default function UserProfilePage() {
           </label>
           <input
             type="password"
-            name="password"
-            value={form.password}
-            onChange={handleChange}
+            {...register('password')}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm"
           />
+          {errors.password && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.password.message}
+            </p>
+          )}
         </div>
         <button
           type="submit"
-          className="w-full py-2 px-4 bg-indigo-600 text-white rounded-md font-semibold hover:bg-indigo-700 cursor-pointer"
+          disabled={isSubmitting}
+          className="w-full py-2 px-4 bg-indigo-600 text-white rounded-md font-semibold hover:bg-indigo-700 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Update Profile
+          {isSubmitting ? 'Updating...' : 'Update Profile'}
         </button>
       </form>
     </div>
