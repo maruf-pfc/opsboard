@@ -23,7 +23,7 @@ import { useState } from 'react';
 // Define the navigation items in an array for easy mapping
 const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: ChartBarIcon },
-  { name: 'Global Tasks', href: '/tasks', icon: CheckBadgeIcon },
+  { name: 'General Tasks', href: '/general-tasks', icon: CheckBadgeIcon },
   { name: 'Classes', href: '/classes', icon: AcademicCapIcon },
   {
     name: 'Contest Video Solutions',
