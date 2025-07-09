@@ -4,7 +4,7 @@ const ClassSchema = new mongoose.Schema(
   {
     courseName: {
       type: String,
-      enum: ['CPC', 'JIPC', 'Bootcamp'],
+      enum: ['CPC', 'JIPC', 'Bootcamp', 'Others'],
       required: true,
     },
     batchNo: {
@@ -18,6 +18,9 @@ const ClassSchema = new mongoose.Schema(
     classTitle: {
       type: String,
       required: true,
+    },
+    description: {
+      type: String,
     },
     status: {
       type: String,
@@ -39,11 +42,14 @@ const ClassSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
-    description: {
-      type: String,
-    },
-    schedule: {
+    startDate: {
       type: Date,
+    },
+    dueDate: {
+      type: Date,
+    },
+    notes: {
+      type: String,
     },
     // We can add enrolled students later if needed
     // students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]

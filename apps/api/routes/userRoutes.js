@@ -5,6 +5,9 @@ import {
   deleteUser,
   getUserById,
   updateUserProfile,
+  createUser,
+  changePassword,
+  adminUpdateUser,
 } from '../controllers/userController.js';
 
 import { protect } from '../middleware/authMiddleware.js';
@@ -23,6 +26,14 @@ router.route('/').get(protect, requireRole(['ADMIN', 'MANAGER']), getUsers);
 // Admin routes
 router.route('/:id/role').put(protect, admin, updateUserRole);
 router.route('/:id').delete(protect, admin, deleteUser);
+
+// Admin create user
+router.post('/', protect, admin, createUser);
+// User change password
+router.put('/:id/password', protect, changePassword);
+
+// Admin update any user (all fields, including role)
+router.put('/:id', protect, admin, adminUpdateUser);
 
 // User routes with enhanced security
 router.route('/:id').get(protect, canViewUser, getUserById);

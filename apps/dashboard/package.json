@@ -1,6 +1,7 @@
 {
   "name": "dashboard",
-  "version": "0.1.0",
+  "description": "Dashboard App for CPS Task Manager",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack --port 3000",

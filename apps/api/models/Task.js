@@ -31,22 +31,14 @@ const TaskSchema = new mongoose.Schema(
       ref: 'User',
       required: [true, 'Reported to is required'],
     },
-    courseName: {
-      type: String,
-      enum: ['CPC', 'JIPC', 'Bootcamp'],
-    },
-    batchNo: {
-      type: String,
-      trim: true,
-    },
     startDate: {
       type: Date,
     },
     dueDate: {
       type: Date,
     },
-    estimatedTime: {
-      type: Number, // in minutes
+    notes: {
+      type: String,
     },
     comments: [
       {
@@ -70,34 +62,11 @@ const TaskSchema = new mongoose.Schema(
         },
       },
     ],
-    subtasks: [
-      {
-        title: {
-          type: String,
-          required: true,
-        },
-        completed: {
-          type: Boolean,
-          default: false,
-        },
-        createdAt: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
   },
   {
     timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
   },
 );
-
-// Index for better query performance
-TaskSchema.index({ status: 1, priority: 1, type: 1 });
-TaskSchema.index({ assignedTo: 1 });
-TaskSchema.index({ reportedTo: 1 });
 
 const Task = mongoose.model('Task', TaskSchema);
 export default Task;

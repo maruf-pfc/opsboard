@@ -2,13 +2,20 @@ import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
-import UserModal from './UserModal';
+import UserModal, { CreateUserModal } from './UserModal';
+import { useAuth } from '@/hooks/useAuth';
 
 interface IUser {
   _id?: string;
   name: string;
   email: string;
-  role: 'ADMIN' | 'MANAGER' | 'MEMBER' | 'TRAINER';
+  role:
+    | 'ADMIN'
+    | 'MANAGER'
+    | 'MEMBER'
+    | 'TRAINER'
+    | 'Developer'
+    | 'Teaching Assistant';
   phone?: string;
   facebookUrl?: string;
   profileImage?: string;
@@ -16,10 +23,12 @@ interface IUser {
 }
 
 export function UserManagementTable() {
+  const { user } = useAuth();
   const [users, setUsers] = useState<IUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [userToEdit, setUserToEdit] = useState<IUser | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -33,47 +42,27 @@ export function UserManagementTable() {
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  const handleModalOpen = (user: IUser) => {
+    setSelectedUser(user);
+    setIsEditModalOpen(true);
+  };
 
-  const handleRoleChange = async (userId: string, newRole: string) => {
+  const handleEditSave = async (updatedUser: Omit<IUser, '_id'>) => {
+    if (!selectedUser?._id) return;
     try {
-      await api.put(`/users/${userId}/role`, { role: newRole });
-      toast.success('User role updated!');
+      await api.put(`/users/${selectedUser._id}`, updatedUser);
+      toast.success('User updated successfully!');
+      setIsEditModalOpen(false);
+      setSelectedUser(null);
       fetchUsers();
-    } catch (error) {
-      toast.error('Failed to update role.');
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to update user');
     }
   };
 
-  const handleModalOpen = (user: IUser | null = null) => {
-    setUserToEdit(user);
-    setIsModalOpen(true);
-  };
-
-  const handleModalClose = () => {
-    setUserToEdit(null);
-    setIsModalOpen(false);
-  };
-
-  const handleSave = (user: Omit<IUser, '_id'>) => {
-    (async () => {
-      try {
-        if (userToEdit) {
-          await api.put(`/users/${userToEdit._id}`, user);
-          toast.success('User updated!');
-        } else {
-          await api.post('/users', user);
-          toast.success('User created!');
-        }
-        fetchUsers();
-        handleModalClose();
-      } catch (error) {
-        toast.error('Failed to save user.');
-      }
-    })();
-  };
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   if (isLoading) return <p>Loading users...</p>;
   if (users.length === 0)
@@ -81,14 +70,17 @@ export function UserManagementTable() {
 
   return (
     <div className="overflow-x-auto w-full bg-white rounded-lg shadow p-8">
-      {/* <div className="flex justify-end mb-4">
-        <button
-          onClick={() => handleModalOpen()}
-          className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl cursor-pointer font-medium"
-        >
-          + Add User
-        </button>
-      </div> */}
+      {/* Create New User button, only for ADMIN */}
+      {user?.role === 'ADMIN' && (
+        <div className="flex justify-end mb-6">
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="btn btn-primary px-6 py-3 rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 font-semibold shadow"
+          >
+            + Create New User
+          </button>
+        </div>
+      )}
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
@@ -112,9 +104,6 @@ export function UserManagementTable() {
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
               Joined
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-              Actions
             </th>
           </tr>
         </thead>
@@ -195,12 +184,24 @@ export function UserManagementTable() {
           ))}
         </tbody>
       </table>
+      {/* Edit User Modal */}
       <UserModal
-        isOpen={isModalOpen}
-        onClose={handleModalClose}
-        onSave={handleSave}
-        user={userToEdit}
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedUser(null);
+        }}
+        onSave={handleEditSave}
+        user={selectedUser}
       />
+      {/* Only show CreateUserModal for admin */}
+      {user?.role === 'ADMIN' && (
+        <CreateUserModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onUserCreated={fetchUsers}
+        />
+      )}
     </div>
   );
 }

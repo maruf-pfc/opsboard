@@ -95,15 +95,14 @@ export default function GeneralTasksPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
 
-  const fetchTasks = async () => {
+  // Fetch only general tasks
+  const fetchGeneralTasks = async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      const { data } = await api.get('/tasks');
-      console.log('Fetched tasks:', data); // Debug log
+      const { data } = await api.get('/tasks?type=general');
       setTasks(data);
     } catch (error) {
-      console.error('Error fetching tasks:', error);
-      toast.error('Could not load tasks.');
+      toast.error('Failed to fetch general tasks');
     } finally {
       setIsLoading(false);
     }
@@ -119,12 +118,12 @@ export default function GeneralTasksPage() {
   };
 
   useEffect(() => {
-    fetchTasks();
+    fetchGeneralTasks();
     fetchUsers();
   }, []);
 
   const handleTaskSaved = () => {
-    fetchTasks();
+    fetchGeneralTasks();
     setTaskToEdit(null);
     setIsModalOpen(false);
   };
@@ -201,9 +200,9 @@ export default function GeneralTasksPage() {
                         <div className="flex items-center justify-between w-full">
                           <div className="flex items-center gap-2 min-w-0">
                             <CheckCircleIcon className="h-5 w-5 text-indigo-500 shrink-0" />
-                            <span className="font-bold text-lg text-gray-800 group-hover:text-indigo-700 transition-colors truncate max-w-[10rem]">
+                            <div className="task-title text-base font-semibold whitespace-normal break-words">
                               {task.title}
-                            </span>
+                            </div>
                           </div>
                           <div className="flex gap-1">
                             <span
@@ -228,16 +227,16 @@ export default function GeneralTasksPage() {
                               ? format(new Date(task.createdAt), 'PP')
                               : '—'}
                           </span>
-                          {task.courseName && (
+                          {task.assignedTo && (
                             <span className="inline-flex items-center gap-1">
-                              <span className="font-semibold">Course:</span>{' '}
-                              {task.courseName}
+                              <span className="font-semibold">Assigned:</span>{' '}
+                              {task.assignedTo.name}
                             </span>
                           )}
-                          {task.batchNo && (
+                          {task.reportedTo && (
                             <span className="inline-flex items-center gap-1">
-                              <span className="font-semibold">Batch:</span>{' '}
-                              {task.batchNo}
+                              <span className="font-semibold">Reported:</span>{' '}
+                              {task.reportedTo.name}
                             </span>
                           )}
                           {task.comments && task.comments.length > 0 && (

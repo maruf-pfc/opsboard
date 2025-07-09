@@ -12,15 +12,17 @@ interface User {
 }
 
 interface MarketingTask {
-  _id: string;
+  _id?: string;
   title: string;
-  description: string;
+  description?: string;
   status: 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'COMPLETED' | 'BLOCKED';
   priority: 'LOW' | 'NORMAL' | 'HIGH';
-  dueDate: string;
-  assignedTo: User;
-  reportedTo: User;
+  dueDate?: string;
+  assignedTo?: User;
+  reportedTo?: User;
   type?: string;
+  startDate?: string;
+  notes?: string;
 }
 
 export default function MarketingPage() {
@@ -71,32 +73,34 @@ export default function MarketingPage() {
     setIsModalOpen(false);
   };
 
-  const handleSave = async (task: Omit<MarketingTask, '_id'>) => {
-    try {
-      if (taskToEdit) {
-        // Update existing task
-        const res = await api.put(`/email-marketing/${taskToEdit._id}`, {
-          ...task,
-          type: 'marketing',
-        });
-        setTasks((prev) =>
-          prev.map((t) => (t._id === taskToEdit._id ? res.data : t)),
-        );
-        toast.success('Task updated');
-      } else {
-        // Create new task
-        const res = await api.post('/email-marketing', {
-          ...task,
-          type: 'marketing',
-        });
-        setTasks((prev) => [res.data, ...prev]);
-        toast.success('Task created');
+  const handleSave = (task: Omit<MarketingTask, '_id'>) => {
+    (async () => {
+      try {
+        if (taskToEdit) {
+          // Update existing task
+          const res = await api.put(`/email-marketing/${taskToEdit._id}`, {
+            ...task,
+            type: 'marketing',
+          });
+          setTasks((prev) =>
+            prev.map((t) => (t._id === taskToEdit._id ? res.data : t)),
+          );
+          toast.success('Task updated');
+        } else {
+          // Create new task
+          const res = await api.post('/email-marketing', {
+            ...task,
+            type: 'marketing',
+          });
+          setTasks((prev) => [res.data, ...prev]);
+          toast.success('Task created');
+        }
+        handleModalClose();
+      } catch (error) {
+        console.error('Error saving task:', error);
+        toast.error('Failed to save task');
       }
-      handleModalClose();
-    } catch (error) {
-      console.error('Error saving task:', error);
-      toast.error('Failed to save task');
-    }
+    })();
   };
 
   const handleDelete = async (taskId: string) => {
@@ -223,7 +227,7 @@ export default function MarketingPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(task.dueDate).toLocaleDateString('en-US', {
+                    {new Date(task.dueDate || '').toLocaleDateString('en-US', {
                       month: 'short',
                       day: 'numeric',
                       year: 'numeric',
@@ -285,7 +289,7 @@ export default function MarketingPage() {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(task._id)}
+                        onClick={() => handleDelete(task._id || '')}
                         className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs rounded-md hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 transform transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md cursor-pointer font-medium"
                       >
                         <TrashIcon className="h-3 w-3 mr-1" />

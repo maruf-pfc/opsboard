@@ -4,11 +4,11 @@ const ContestVideoSolutionSchema = new mongoose.Schema(
   {
     courseName: {
       type: String,
-      enum: ['CPC', 'JIPC', 'Bootcamp'],
+      enum: ['CPC', 'JIPC', 'Bootcamp', 'Others'],
       required: true,
     },
     batchNo: {
-      type: Number,
+      type: String,
       required: true,
     },
     contestName: {
@@ -18,6 +18,11 @@ const ContestVideoSolutionSchema = new mongoose.Schema(
     onlineJudge: {
       type: String,
       enum: ['Leetcode', 'Vjudge'],
+      required: true,
+    },
+    platform: {
+      type: String,
+      enum: ['Google Classroom', 'Website'],
       required: true,
     },
     status: {
@@ -40,14 +45,14 @@ const ContestVideoSolutionSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
-    estimatedTime: {
-      type: String,
-      required: true,
+    startDate: {
+      type: Date,
     },
-    platform: {
+    dueDate: {
+      type: Date,
+    },
+    notes: {
       type: String,
-      enum: ['Google Classroom', 'Website'],
-      required: true,
     },
   },
   { timestamps: true },

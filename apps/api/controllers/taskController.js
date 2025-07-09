@@ -5,12 +5,16 @@ import asyncHandler from '../utils/asyncHandler.js';
 // @route   GET /api/tasks
 // @access  Private
 const getAllTasks = asyncHandler(async (req, res) => {
-  const tasks = await Task.find({})
+  let filter = {};
+  if (req.query.type === 'general') {
+    // Only fetch general tasks (not classes, contests, etc.)
+    filter = { $or: [ { type: { $exists: false } }, { type: 'general' } ] };
+  }
+  const tasks = await Task.find(filter)
     .populate('assignedTo', 'name email profileImage')
     .populate('reportedTo', 'name email profileImage')
     .populate('comments.author', 'name email profileImage')
     .sort({ createdAt: -1 });
-
   res.json(tasks);
 });
 

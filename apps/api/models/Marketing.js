@@ -11,12 +11,14 @@ const MarketingSchema = new mongoose.Schema(
     },
     priority: {
       type: String,
-      enum: ['HIGH', 'NORMAL', 'LOW'],
+      enum: ['LOW', 'NORMAL', 'HIGH'],
       default: 'NORMAL',
     },
-    dueDate: { type: Date },
     assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     reportedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    startDate: { type: Date },
+    dueDate: { type: Date },
+    notes: { type: String },
   },
   { timestamps: true },
 );

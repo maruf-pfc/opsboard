@@ -19,6 +19,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   if (isLoading || !user) return <div>Loading...</div>;
   if (user.role === 'MEMBER') return null;
+  // Restrict payment page to ADMIN only
+  if (
+    typeof window !== 'undefined' &&
+    window.location.pathname.includes('payments') &&
+    user.role !== 'ADMIN'
+  ) {
+    if (typeof window !== 'undefined') window.location.replace('/dashboard');
+    return null;
+  }
 
   return (
     <ProtectedRoute>

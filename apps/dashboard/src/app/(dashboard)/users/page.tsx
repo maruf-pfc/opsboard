@@ -1,12 +1,15 @@
 'use client';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { UserManagementTable } from '@/components/admin/UserManagementTable';
+import { CreateUserModal } from '@/components/admin/UserModal';
+import Link from 'next/link';
 
 export default function UsersPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const [isCreateUserOpen, setIsCreateUserOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && user && user.role === 'MEMBER') {
@@ -15,7 +18,6 @@ export default function UsersPage() {
   }, [user, isLoading, router]);
 
   if (isLoading || !user) return <div>Loading...</div>;
-  if (user.role === 'MEMBER') return null;
 
   return (
     <div className="space-y-8 px-2 sm:px-4 md:px-6 lg:px-8">
@@ -25,6 +27,7 @@ export default function UsersPage() {
           View and manage all users in the system.
         </p>
       </div>
+      {/* Removed Go to My Profile button; now in sidebar */}
       <UserManagementTable />
     </div>
   );
