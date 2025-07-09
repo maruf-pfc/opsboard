@@ -133,12 +133,6 @@ export function PaymentTable({
                   >
                     Edit
                   </button>
-                  <a
-                    href="#"
-                    className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs rounded-md hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transform transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md cursor-pointer font-medium"
-                  >
-                    View
-                  </a>
                   <button
                     onClick={() => handleDelete(payment._id)}
                     className="text-red-600 hover:text-red-900 cursor-pointer"
