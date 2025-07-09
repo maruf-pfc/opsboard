@@ -4,7 +4,7 @@ const ContestSchema = new mongoose.Schema(
   {
     courseName: {
       type: String,
-      enum: ['CPC', 'JIPC', 'Bootcamp'],
+      enum: ['CPC', 'JIPC', 'Bootcamp', 'Others'],
       required: true,
     },
     batchNo: {
@@ -15,7 +15,7 @@ const ContestSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    platform: {
+    onlineJudge: {
       type: String,
       enum: ['Leetcode', 'Vjudge'],
       required: true,
@@ -40,9 +40,14 @@ const ContestSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
-    estimatedTime: {
+    startDate: {
+      type: Date,
+    },
+    dueDate: {
+      type: Date,
+    },
+    notes: {
       type: String,
-      required: true,
     },
   },
   { timestamps: true },

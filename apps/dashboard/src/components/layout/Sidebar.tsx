@@ -52,7 +52,7 @@ export function Sidebar() {
           <div className="bg-blue-500 p-2 rounded-lg">
             <CheckBadgeIcon className="h-6 w-6 text-white" />
           </div>
-          <h1 className="text-xl font-bold text-white">OpsBoard</h1>
+          <h1 className="text-xl font-bold text-white">CPS Task Manager</h1>
         </Link>
       </div>
       {/* If user is MEMBER, hide all navigation and user info */}
@@ -113,6 +113,15 @@ export function Sidebar() {
                 <p className="text-xs text-gray-400">{user?.email}</p>
               </div>
             </div>
+            {/* Go to My Profile button */}
+            {user && (
+              <Link
+                href={`/users/${user._id}`}
+                className="w-full mt-4 flex items-center justify-center gap-3 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md transition-colors cursor-pointer shadow"
+              >
+                My Profile
+              </Link>
+            )}
             <button
               onClick={logout}
               className="w-full mt-4 group flex items-center justify-center gap-3 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-red-700 hover:text-white rounded-md transition-colors cursor-pointer"

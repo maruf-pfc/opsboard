@@ -14,6 +14,9 @@ type TrainerWithRole = {
 };
 interface PaymentWithRole extends Omit<IPayment, 'trainer'> {
   trainer: TrainerWithRole;
+  courseName?: string;
+  batchNo?: string;
+  classNo?: string;
 }
 
 type PaymentTableProps = {
@@ -90,12 +93,17 @@ export function PaymentTable({
                 {payment.trainer.name}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {payment.trainer.role === 'TRAINER' &&
-                payment.courseName &&
-                payment.batchNo &&
-                payment.classNo
-                  ? `Course: ${payment.courseName}, Batch: ${payment.batchNo}, Class: ${payment.classNo}`
-                  : ''}
+                {payment.courseName || payment.batchNo || payment.classNo
+                  ? [
+                      payment.courseName
+                        ? `Course: ${payment.courseName}`
+                        : null,
+                      payment.batchNo ? `Batch: ${payment.batchNo}` : null,
+                      payment.classNo ? `Class: ${payment.classNo}` : null,
+                    ]
+                      .filter(Boolean)
+                      .join(', ')
+                  : '-'}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {payment.trainer.role || 'N/A'}

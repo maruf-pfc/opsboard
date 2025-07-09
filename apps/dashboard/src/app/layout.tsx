@@ -6,7 +6,7 @@ import { AppProvider } from "@/components/providers/AppProvider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "OpsBoard - Where Teams Work in Sync",
+  title: "CPS Task Manager - Where Teams Work in Sync",
   description: "Internal Task & Team Management Dashboard",
 };
 

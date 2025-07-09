@@ -9,7 +9,13 @@ interface User {
   _id: string;
   name: string;
   email: string;
-  role: 'ADMIN' | 'MANAGER' | 'MEMBER' | 'TRAINER';
+  role:
+    | 'ADMIN'
+    | 'MANAGER'
+    | 'MEMBER'
+    | 'TRAINER'
+    | 'Developer'
+    | 'Teaching Assistant';
   phone?: string;
   facebookUrl?: string;
   profileImage?: string;

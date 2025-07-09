@@ -8,12 +8,19 @@ const UserSchema = new mongoose.Schema(
     password: { type: String, required: true },
     role: {
       type: String,
-      enum: ['ADMIN', 'MANAGER', 'MEMBER', 'TRAINER'],
+      enum: [
+        'ADMIN',
+        'MANAGER',
+        'TRAINER',
+        'Developer',
+        'Teaching Assistant',
+        'MEMBER',
+      ],
       default: 'MEMBER',
     },
-    phone: { type: String }, // Optional phone number
-    facebookUrl: { type: String }, // Optional Facebook profile URL
-    profileImage: { type: String }, // Cloudinary image URL
+    phone: { type: String },
+    facebookUrl: { type: String },
+    profileImage: { type: String },
   },
   { timestamps: true },
 );

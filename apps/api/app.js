@@ -12,7 +12,6 @@ import authRoutes from './routes/authRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import classRoutes from './routes/classRoutes.js';
-import videoRoutes from './routes/contestVideoSolutionsRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import emailMarketingRoutes from './routes/emailMarketingRoutes.js';
 import contestVideoSolutionRoutes from './routes/contestVideoSolutionRoutes.js';

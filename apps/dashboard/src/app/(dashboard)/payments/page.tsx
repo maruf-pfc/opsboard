@@ -7,36 +7,57 @@ import { PlusIcon } from '@heroicons/react/24/solid';
 import { PaymentTable } from '@/components/payments/PaymentTable';
 import { PaymentModal } from '@/components/payments/PaymentModal';
 import { AdminRoute } from '@/components/auth/AdminRoute';
+import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/navigation';
 
 export interface IPayment {
   _id: string;
   trainer: { _id: string; name: string; role?: string; profileImage?: string };
   amount: number;
-  month?: string;
   status: 'Pending' | 'Paid';
   notes?: string;
   paidAt?: string;
   createdAt: string;
-  courseName?: string;
-  batchNo?: string;
-  classNo?: string;
+  details?: {
+    courseName?: 'CPC' | 'JIPC' | 'Bootcamp' | 'Others';
+    batchNo?: string;
+    classNo?: string;
+  };
+  date?: string;
 }
 
 export default function PaymentsPage() {
   const [payments, setPayments] = useState<IPayment[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isPaymentsLoading, setIsPaymentsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [paymentToEdit, setPaymentToEdit] = useState<IPayment | null>(null);
 
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
+  useEffect(() => {
+    if (!isLoading && user && user.role !== 'ADMIN') {
+      router.replace('/dashboard');
+    }
+  }, [user, isLoading, router]);
+  if (isLoading || !user) return <div>Loading...</div>;
+  if (!user || (user.role !== 'ADMIN' && user.role !== 'MANAGER')) {
+    return (
+      <div className="text-center text-red-500 font-bold mt-10">
+        Access Denied: Only ADMIN and MANAGER can view this page.
+      </div>
+    );
+  }
+
   const fetchPayments = async () => {
-    setIsLoading(true);
+    setIsPaymentsLoading(true);
     try {
       const { data } = await api.get('/payments');
+      console.log('Fetched payments:', data); // DEBUG LOG
       setPayments(data);
     } catch (error) {
       toast.error('Failed to fetch payments.');
     } finally {
-      setIsLoading(false);
+      setIsPaymentsLoading(false);
     }
   };
 
@@ -69,7 +90,7 @@ export default function PaymentsPage() {
             </button>
           </div>
 
-          {isLoading ? (
+          {isPaymentsLoading ? (
             <p>Loading payment records...</p>
           ) : (
             <PaymentTable

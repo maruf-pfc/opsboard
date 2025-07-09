@@ -7,37 +7,43 @@ const PaymentSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    name: {
+      type: String,
+      required: true,
+    },
+    role: {
+      type: String,
+      required: true,
+    },
+    details: {
+      courseName: {
+        type: String,
+        enum: ['CPC', 'JIPC', 'Bootcamp', 'Others'],
+        required: false,
+      },
+      batchNo: {
+        type: String,
+        required: false,
+      },
+      classNo: {
+        type: String,
+        required: false,
+      },
+    },
     amount: {
       type: Number,
       required: [true, 'Please add a payment amount'],
-    },
-    month: {
-      type: String,
-      required: false,
     },
     status: {
       type: String,
       enum: ['Pending', 'Paid'],
       default: 'Pending',
     },
+    date: {
+      type: Date,
+    },
     notes: {
       type: String,
-    },
-    courseName: {
-      type: String,
-      enum: ['CPC', 'JIPC', 'Bootcamp'],
-      required: false,
-    },
-    batchNo: {
-      type: String,
-      required: false,
-    },
-    classNo: {
-      type: String,
-      required: false,
-    },
-    paidAt: {
-      type: Date,
     },
     processedBy: {
       type: mongoose.Schema.Types.ObjectId,

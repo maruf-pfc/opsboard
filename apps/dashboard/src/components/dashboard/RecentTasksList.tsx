@@ -44,7 +44,7 @@ export function RecentTasksList({
             {/* Map over the tasks array to create a list item for each one */}
             {tasks.map((task) => (
               <li key={task._id} className="py-3">
-                <p className="font-medium text-gray-900 truncate">
+                <p className="font-medium text-gray-900 whitespace-normal break-words">
                   {task.title}
                 </p>
                 <div className="flex justify-between items-center text-sm text-gray-500 mt-1">

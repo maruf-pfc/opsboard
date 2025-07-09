@@ -76,7 +76,16 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 export const updateUserRole = asyncHandler(async (req, res) => {
   const { role } = req.body;
-  if (!['ADMIN', 'MANAGER', 'MEMBER', 'TRAINER'].includes(role)) {
+  if (
+    ![
+      'ADMIN',
+      'MANAGER',
+      'MEMBER',
+      'TRAINER',
+      'Developer',
+      'Teaching Assistant',
+    ].includes(role)
+  ) {
     return res.status(400).json({ error: 'Invalid role specified.' });
   }
 
@@ -98,4 +107,96 @@ export const deleteUser = asyncHandler(async (req, res) => {
   if (!user) return res.status(404).json({ error: 'User not found.' });
   // Optional: handle cascading effects if needed
   res.json({ message: 'User deleted successfully.' });
+});
+
+// @desc    Admin: Create a new user with all details and a default password
+// @route   POST /api/v1/users
+// @access  Private/Admin
+export const createUser = asyncHandler(async (req, res) => {
+  const { name, email, password, role, phone, facebookUrl, profileImage } =
+    req.body;
+  if (!name || !email || !password || !role) {
+    return res
+      .status(400)
+      .json({ error: 'Name, email, password, and role are required.' });
+  }
+  const userExists = await User.findOne({ email });
+  if (userExists) {
+    return res.status(400).json({ error: 'User already exists.' });
+  }
+  const user = await User.create({
+    name,
+    email,
+    password,
+    role,
+    phone,
+    facebookUrl,
+    profileImage,
+  });
+  res.status(201).json({
+    message: 'User created successfully',
+    user: {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    },
+  });
+});
+
+// @desc    User: Change password
+// @route   PUT /api/v1/users/:id/password
+// @access  Private (self or admin)
+export const changePassword = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (!user) return res.status(404).json({ error: 'User not found.' });
+  // Only self or admin can change password
+  if (
+    req.user.role !== 'ADMIN' &&
+    req.user._id.toString() !== user._id.toString()
+  ) {
+    return res.status(403).json({ error: 'Not authorized.' });
+  }
+  const { oldPassword, newPassword } = req.body;
+  if (req.user.role !== 'ADMIN') {
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch)
+      return res.status(400).json({ error: 'Old password is incorrect.' });
+  }
+  user.password = newPassword;
+  await user.save();
+  res.status(200).json({ message: 'Password updated successfully.' });
+});
+
+// @desc    Admin: Update any user (all fields, including role)
+// @route   PUT /api/v1/users/:id
+// @access  Private/Admin
+export const adminUpdateUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (!user) return res.status(404).json({ error: 'User not found.' });
+
+  // Only update fields if provided
+  if (req.body.name !== undefined) user.name = req.body.name;
+  if (req.body.email !== undefined) user.email = req.body.email;
+  if (req.body.phone !== undefined) user.phone = req.body.phone;
+  if (req.body.facebookUrl !== undefined)
+    user.facebookUrl = req.body.facebookUrl;
+  if (req.body.profileImage !== undefined)
+    user.profileImage = req.body.profileImage;
+  if (req.body.role !== undefined) {
+    const allowedRoles = [
+      'ADMIN',
+      'MANAGER',
+      'MEMBER',
+      'TRAINER',
+      'Developer',
+      'Teaching Assistant',
+    ];
+    if (!allowedRoles.includes(req.body.role)) {
+      return res.status(400).json({ error: 'Invalid role specified.' });
+    }
+    user.role = req.body.role;
+  }
+  await user.save();
+  res.status(200).json({ message: 'User updated', user });
 });

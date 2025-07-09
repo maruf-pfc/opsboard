@@ -72,8 +72,10 @@ const priorityMeta = {
   },
 };
 
+type ContestWithPlatform = Contest & { platform?: string };
+
 export default function ContestsPage() {
-  const [contests, setContests] = useState<Contest[]>([]);
+  const [contests, setContests] = useState<ContestWithPlatform[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -201,10 +203,6 @@ export default function ContestsPage() {
                             {contest.createdAt
                               ? format(new Date(contest.createdAt), 'PP')
                               : '—'}
-                          </span>
-                          <span className="inline-flex items-center gap-1">
-                            <ClockIcon className="h-4 w-4" />
-                            {contest.estimatedTime}h
                           </span>
                           <span className="inline-flex items-center gap-1">
                             <span className="font-semibold">Batch:</span>{' '}

@@ -28,10 +28,12 @@ export function TaskCard({ task, onTaskUpdate }: TaskCardProps) {
         onClick={() => setIsModalOpen(true)}
         className="bg-white rounded-md p-4 shadow-sm cursor-pointer hover:shadow-lg transition-shadow border border-gray-200"
       >
-        <div className="flex justify-between items-start">
-          <h4 className="font-semibold text-gray-800">{task.title}</h4>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+          <h4 className="font-semibold text-gray-800 break-words w-full text-base sm:text-lg">
+            {task.title}
+          </h4>
           <span
-            className={`text-xs font-bold px-2 py-1 rounded-full ${priorityClasses[task.priority]}`}
+            className={`text-xs font-bold px-2 py-1 rounded-full ${priorityClasses[task.priority]} mt-1 sm:mt-0 sm:ml-2`}
           >
             {task.priority}
           </span>
