@@ -1,38 +1,26 @@
-# ---- Base Stage ----
-# Use a specific Node.js version for consistency.
-FROM node:18-alpine AS base
-WORKDIR /usr/src/app
+FROM node:20-alpine
 
-# ---- Dependencies Stage ----
-# This stage is only for installing dependencies. It gets cached if lockfiles don't change.
-FROM base AS deps
-# Install pnpm
-RUN npm install -g pnpm
-# Copy only the files needed for dependency installation
-COPY package.json pnpm-lock.yaml ./
-# Fetch all dependencies
-RUN pnpm fetch
+WORKDIR /app
 
-# ---- Build Stage ----
-# This stage builds the application code.
-FROM base AS build
+# Copy package manager files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/api/package.json ./apps/api/
+COPY apps/dashboard/package.json ./apps/dashboard/
+COPY packages/eslint-config/package.json ./packages/eslint-config/
+COPY packages/typescript-config/package.json ./packages/typescript-config/
+COPY packages/ui/package.json ./packages/ui/
+
 RUN npm install -g pnpm
-COPY --from=deps /usr/src/app/node_modules ./node_modules
+RUN pnpm install --frozen-lockfile
+
 COPY . .
-# You can add a build step here if you have one (e.g., TypeScript compilation)
-# RUN pnpm build
 
-# ---- Production Stage ----
-# This is the final, lean image that will run in production.
-FROM base AS production
-ENV NODE_ENV=production
-RUN npm install -g pnpm
-# Copy only the necessary files from the build stage
-COPY --from=build /usr/src/app/node_modules ./node_modules
-COPY --from=build /usr/src/app ./
+# Build dashboard for production
+RUN pnpm --filter dashboard build
 
-# Expose the port the app runs on
-EXPOSE ${PORT:-5001}
+EXPOSE 7777 7778
 
-# The command to run the application
-CMD [ "pnpm", "start" ]
+# Start both apps in parallel using 'pnpm concurrently'
+RUN pnpm add -w concurrently
+
+CMD ["pnpm", "concurrently", "--kill-others", "--names", "api,dashboard", "pnpm --filter api start", "pnpm --filter dashboard dev"]

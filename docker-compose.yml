@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    ports:
+      - "7778:7778"
+    image: marufsarker/cps-task-manager-api:latest
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: apps/dashboard/Dockerfile
+    ports:
+      - "7777:7777"
+    image: marufsarker/cps-task-manager-dashboard:latest
