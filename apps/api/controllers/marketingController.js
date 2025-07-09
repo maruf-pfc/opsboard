@@ -35,8 +35,10 @@ export const createMarketingTask = async (req, res) => {
       status,
       priority,
       dueDate,
+      startDate,
       assignedTo,
       reportedTo,
+      notes,
     } = req.body;
     const task = new MarketingTask({
       title,
@@ -44,8 +46,10 @@ export const createMarketingTask = async (req, res) => {
       status,
       priority,
       dueDate,
+      startDate,
       assignedTo,
       reportedTo,
+      notes,
     });
     await task.save();
     const populatedTask = await MarketingTask.findById(task._id)
@@ -66,12 +70,14 @@ export const updateMarketingTask = async (req, res) => {
       status,
       priority,
       dueDate,
+      startDate,
       assignedTo,
       reportedTo,
+      notes,
     } = req.body;
     const task = await MarketingTask.findByIdAndUpdate(
       req.params.id,
-      { title, description, status, priority, dueDate, assignedTo, reportedTo },
+      { title, description, status, priority, dueDate, startDate, assignedTo, reportedTo, notes },
       { new: true, runValidators: true },
     )
       .populate('assignedTo', 'name email profileImage')

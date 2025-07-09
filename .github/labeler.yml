@@ -1,46 +1,56 @@
 dashboard:
   - apps/dashboard/**
+  - apps/dashboard/**/*
 
 api:
   - apps/api/**
+  - apps/api/**/*
 
 docs:
-  - apps/docs/**
-  - "**/*.md"
-  - "**/*.mdx"
+  - '**/*.md'
+  - '**/*.mdx'
+  - apps/api/README.md
+  - apps/dashboard/README.md
+  - packages/eslint-config/README.md
 
 config:
   - .github/**
   - turbo.json
   - pnpm-workspace.yaml
   - package.json
-  - configs/**
+  - apps/api/package.json
+  - apps/dashboard/package.json
+  - packages/eslint-config/package.json
+  - packages/typescript-config/package.json
+  - packages/ui/package.json
   - .eslintrc*
   - .prettierrc*
   - .editorconfig
 
 infra:
   - docker-compose.yml
-  - Dockerfile
+  - apps/api/Dockerfile
+  - apps/dashboard/Dockerfile
   - .dockerignore
 
 shared:
   - packages/**
-  - configs/**
+  - packages/**/*
 
 testing:
-  - "**/*.test.ts"
-  - "**/*.test.tsx"
-  - "**/*.spec.ts"
-  - "**/*.spec.tsx"
-  - "**/__tests__/**"
+  - '**/*.test.ts'
+  - '**/*.test.tsx'
+  - '**/*.spec.ts'
+  - '**/*.spec.tsx'
+  - '**/__tests__/**'
 
 types:
-  - "**/*.d.ts"
-  - types/**
+  - '**/*.d.ts'
+  - packages/typescript-config/**
+  - packages/typescript-config/**/*
 
 styles:
-  - "**/*.css"
-  - "**/*.scss"
-  - "**/*.sass"
-  - "**/*.tailwind.css"
+  - apps/dashboard/src/**/*.css
+  - apps/dashboard/src/**/*.scss
+  - apps/dashboard/src/**/*.sass
+  - apps/dashboard/src/**/*.tailwind.css
