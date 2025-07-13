@@ -74,10 +74,10 @@ export default function MarketingTaskModal({
         assignedTo: task.assignedTo?._id || '',
         reportedTo: task.reportedTo?._id || '',
         startDate: task.startDate
-          ? new Date(task.startDate).toISOString().slice(0, 16)
+          ? new Date(task.startDate).toISOString().slice(0, 10)
           : '',
         dueDate: task.dueDate
-          ? new Date(task.dueDate).toISOString().slice(0, 16)
+          ? new Date(task.dueDate).toISOString().slice(0, 10)
           : '',
         notes: task.notes || '',
       });
@@ -205,20 +205,39 @@ export default function MarketingTaskModal({
                   )}
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium">Due Date</label>
-                <input
-                  type="date"
-                  {...register('dueDate')}
-                  className={`w-full border rounded px-3 py-2 mt-1 ${
-                    errors.dueDate ? 'border-red-500' : ''
-                  }`}
-                />
-                {errors.dueDate && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.dueDate.message}
-                  </p>
-                )}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    {...register('startDate')}
+                    className={`w-full border rounded px-3 py-2 mt-1 ${
+                      errors.startDate ? 'border-red-500' : ''
+                    }`}
+                  />
+                  {errors.startDate && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.startDate.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium">Due Date</label>
+                  <input
+                    type="date"
+                    {...register('dueDate')}
+                    className={`w-full border rounded px-3 py-2 mt-1 ${
+                      errors.dueDate ? 'border-red-500' : ''
+                    }`}
+                  />
+                  {errors.dueDate && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.dueDate.message}
+                    </p>
+                  )}
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -267,6 +286,19 @@ export default function MarketingTaskModal({
                     </p>
                   )}
                 </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium">Notes</label>
+                <textarea
+                  {...register('notes')}
+                  className={`w-full border rounded px-3 py-2 mt-1 ${errors.notes ? 'border-red-500' : ''}`}
+                  rows={2}
+                />
+                {errors.notes && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.notes.message}
+                  </p>
+                )}
               </div>
               <div className="flex justify-end gap-4 mt-6">
                 <button

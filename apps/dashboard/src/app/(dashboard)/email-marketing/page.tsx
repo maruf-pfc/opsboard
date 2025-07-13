@@ -147,6 +147,9 @@ export default function MarketingPage() {
                 Priority
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Start Date
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Due Date
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -155,6 +158,9 @@ export default function MarketingPage() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Reported To
               </th>
+              {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Notes
+              </th> */}
               <th className="px-6 py-3"></th>
             </tr>
           </thead>
@@ -227,6 +233,15 @@ export default function MarketingPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {task.startDate
+                      ? new Date(task.startDate).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })
+                      : ''}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(task.dueDate || '').toLocaleDateString('en-US', {
                       month: 'short',
                       day: 'numeric',
@@ -278,6 +293,10 @@ export default function MarketingPage() {
                         </div>
                       </div>
                     </div>
+                  </td>
+
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {task.notes || ''}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end space-x-2">

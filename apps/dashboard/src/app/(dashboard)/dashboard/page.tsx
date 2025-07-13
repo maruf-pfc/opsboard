@@ -82,8 +82,20 @@ export default function DashboardPage() {
       setIsLoading(true);
       try {
         const { data } = await api.get('/stats');
+        console.log('Dashboard stats received:', data); // DEBUG LOG
+        if (data.payments) {
+          console.log('Payment analytics:', {
+            pendingCount: data.payments.pendingCount,
+            pendingAmount: data.payments.pendingAmount,
+            paidCount: data.payments.paidCount,
+            paidAmount: data.payments.paidAmount,
+            monthlyAnalytics: data.payments.monthlyAnalytics,
+            note: 'Analytics based on startDate field',
+          }); // DEBUG LOG
+        }
         setStats(data);
       } catch (error) {
+        console.error('Error fetching dashboard stats:', error); // DEBUG LOG
         toast.error('Could not load dashboard statistics.');
       } finally {
         setIsLoading(false);
@@ -97,6 +109,8 @@ export default function DashboardPage() {
   }
 
   const paymentData = stats.payments?.monthlyAnalytics || [];
+  console.log('Chart payment data:', paymentData); // DEBUG LOG
+
   const barData = {
     labels: paymentData.map((m) => m._id),
     datasets: [
@@ -107,11 +121,23 @@ export default function DashboardPage() {
       },
     ],
   };
+
   const barOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
       title: { display: false },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: function (value: any) {
+            return '$' + value.toLocaleString();
+          },
+        },
+      },
     },
   };
 
@@ -186,7 +212,22 @@ export default function DashboardPage() {
                 Payment Analytics (Last 6 Months)
               </h2>
               <div className="flex-1 min-h-[250px]">
-                <Bar data={barData} options={barOptions} />
+                {paymentData.length > 0 ? (
+                  <Bar data={barData} options={barOptions} />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-500">
+                    <div className="text-center">
+                      <CurrencyDollarIcon className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                      <p className="text-lg font-medium">
+                        No payment data available
+                      </p>
+                      <p className="text-sm">
+                        Payment analytics will appear here once payments are
+                        made
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

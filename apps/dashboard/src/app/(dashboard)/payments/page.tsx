@@ -12,17 +12,24 @@ import { useRouter } from 'next/navigation';
 
 export interface IPayment {
   _id: string;
-  trainer: { _id: string; name: string; role?: string; profileImage?: string };
-  amount: number;
-  status: 'Pending' | 'Paid';
-  notes?: string;
-  paidAt?: string;
-  createdAt: string;
+  trainer: { _id: string; name: string; profileImage?: string };
+  name: string;
   details?: {
     courseName?: 'CPC' | 'JIPC' | 'Bootcamp' | 'Others';
     batchNo?: string;
     classNo?: string;
   };
+  classTitle: string;
+  amount: number;
+  status: 'Pending' | 'Paid';
+  priority: 'LOW' | 'NORMAL' | 'HIGH';
+  startDate?: string;
+  dueDate?: string;
+  assignedTo?: { _id: string; name: string; profileImage?: string };
+  reportedTo?: { _id: string; name: string; profileImage?: string };
+  notes?: string;
+  paidAt?: string;
+  createdAt: string;
   date?: string;
 }
 
@@ -53,8 +60,23 @@ export default function PaymentsPage() {
     try {
       const { data } = await api.get('/payments');
       console.log('Fetched payments:', data); // DEBUG LOG
+      // Log each payment's details structure
+      data.forEach((payment: IPayment, index: number) => {
+        console.log(`Payment ${index + 1}:`, {
+          id: payment._id,
+          trainer: payment.trainer,
+          classTitle: payment.classTitle,
+          details: payment.details,
+          courseName: payment.details?.courseName,
+          batchNo: payment.details?.batchNo,
+          classNo: payment.details?.classNo,
+          startDate: payment.startDate,
+          dueDate: payment.dueDate,
+        });
+      });
       setPayments(data);
     } catch (error) {
+      console.error('Error fetching payments:', error); // DEBUG LOG
       toast.error('Failed to fetch payments.');
     } finally {
       setIsPaymentsLoading(false);

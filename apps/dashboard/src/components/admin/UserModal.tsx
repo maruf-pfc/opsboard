@@ -78,7 +78,12 @@ export default function UserModal({
   }, [user, isOpen, reset]);
 
   const onSubmit = (data: UserFormData) => {
-    onSave(data);
+    // Only include password if present (for create), omit for edit
+    const submitData = { ...data };
+    if (!data.password) {
+      delete submitData.password;
+    }
+    onSave(submitData);
   };
 
   const roleOptions = [
@@ -197,7 +202,8 @@ export default function UserModal({
                   </p>
                 )}
               </div>
-              {user && user.role === 'ADMIN' && (
+              {/* Only show password field when creating a new user */}
+              {!user && (
                 <div>
                   <label className="block text-sm font-medium">
                     Default Password

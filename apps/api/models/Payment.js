@@ -11,10 +11,6 @@ const PaymentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    role: {
-      type: String,
-      required: true,
-    },
     details: {
       courseName: {
         type: String,
@@ -30,6 +26,10 @@ const PaymentSchema = new mongoose.Schema(
         required: false,
       },
     },
+    classTitle: {
+      type: String,
+      required: true,
+    },
     amount: {
       type: Number,
       required: [true, 'Please add a payment amount'],
@@ -39,8 +39,24 @@ const PaymentSchema = new mongoose.Schema(
       enum: ['Pending', 'Paid'],
       default: 'Pending',
     },
-    date: {
+    priority: {
+      type: String,
+      enum: ['LOW', 'NORMAL', 'HIGH'],
+      default: 'NORMAL',
+    },
+    startDate: {
       type: Date,
+    },
+    dueDate: {
+      type: Date,
+    },
+    assignedTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    reportedTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
     },
     notes: {
       type: String,
