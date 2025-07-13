@@ -1,16 +1,16 @@
 import { Fragment, useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 import { IPayment } from '@/app/(dashboard)/payments/page';
 import { paymentSchema, type PaymentFormData } from '@/lib/validations';
 import { Dialog, Transition } from '@headlessui/react';
+import { formatDateForInput } from '@/lib/utils';
 
 interface User {
   _id: string;
   name: string;
-  role?: string;
 }
 
 type PaymentModalProps = {
@@ -27,13 +27,13 @@ export function PaymentModal({
   paymentToEdit,
 }: PaymentModalProps) {
   const [users, setUsers] = useState<User[]>([]);
-  const [selectedTrainerRole, setSelectedTrainerRole] = useState<string>('');
 
   const {
     register,
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<PaymentFormData>({
     resolver: zodResolver(paymentSchema),
@@ -41,12 +41,18 @@ export function PaymentModal({
       amount: 0,
       status: 'Pending',
       trainer: '',
+      name: '',
       details: {
         courseName: undefined,
         batchNo: '',
         classNo: '',
       },
-      date: '',
+      classTitle: '',
+      priority: 'NORMAL',
+      startDate: '',
+      dueDate: '',
+      assignedTo: '',
+      reportedTo: '',
       notes: '',
     },
   });
@@ -59,20 +65,41 @@ export function PaymentModal({
     }
   }, [isOpen]);
 
+  // Set name when trainer changes
+  useEffect(() => {
+    const selectedUser = users.find((u) => u._id === watchedTrainer);
+    if (selectedUser) {
+      setValue('name', selectedUser.name);
+    } else {
+      setValue('name', '');
+    }
+  }, [watchedTrainer, users, setValue]);
+
   useEffect(() => {
     if (paymentToEdit) {
+      console.log('Editing payment:', paymentToEdit); // DEBUG LOG
+      console.log('Payment dates:', {
+        startDate: paymentToEdit.startDate,
+        dueDate: paymentToEdit.dueDate,
+        startDateFormatted: formatDateForInput(paymentToEdit.startDate),
+        dueDateFormatted: formatDateForInput(paymentToEdit.dueDate),
+      }); // DEBUG LOG
       reset({
         amount: paymentToEdit.amount || 0,
         status: paymentToEdit.status || 'Pending',
         trainer: paymentToEdit.trainer?._id || '',
+        name: paymentToEdit.name || '',
         details: {
           courseName: paymentToEdit.details?.courseName || undefined,
           batchNo: paymentToEdit.details?.batchNo || '',
           classNo: paymentToEdit.details?.classNo || '',
         },
-        date: paymentToEdit.date
-          ? new Date(paymentToEdit.date).toISOString().slice(0, 16)
-          : '',
+        classTitle: paymentToEdit.classTitle || '',
+        priority: paymentToEdit.priority || 'NORMAL',
+        startDate: formatDateForInput(paymentToEdit.startDate),
+        dueDate: formatDateForInput(paymentToEdit.dueDate),
+        assignedTo: paymentToEdit.assignedTo?._id || '',
+        reportedTo: paymentToEdit.reportedTo?._id || '',
         notes: paymentToEdit.notes || '',
       });
     } else {
@@ -80,46 +107,61 @@ export function PaymentModal({
         amount: 0,
         status: 'Pending',
         trainer: '',
+        name: '',
         details: {
           courseName: undefined,
           batchNo: '',
           classNo: '',
         },
-        date: '',
+        classTitle: '',
+        priority: 'NORMAL',
+        startDate: '',
+        dueDate: '',
+        assignedTo: '',
+        reportedTo: '',
         notes: '',
       });
     }
   }, [paymentToEdit, isOpen, reset]);
 
-  useEffect(() => {
-    const selectedUser = users.find((u) => u._id === watchedTrainer);
-    setSelectedTrainerRole(selectedUser?.role || '');
-  }, [watchedTrainer, users]);
-
   const onSubmit = async (data: PaymentFormData) => {
+    console.log('Submitting payment data:', data); // DEBUG LOG
     const payload = {
       amount: data.amount,
       status: data.status,
       trainer: data.trainer,
+      name: data.name,
       details: {
         courseName: data.details?.courseName,
         batchNo: data.details?.batchNo,
         classNo: data.details?.classNo,
       },
-      date: data.date ? new Date(data.date) : undefined,
+      classTitle: data.classTitle,
+      priority: data.priority,
+      startDate: data.startDate,
+      dueDate: data.dueDate,
+      assignedTo: data.assignedTo,
+      reportedTo: data.reportedTo,
       notes: data.notes,
     };
+    console.log('Final payload:', payload); // DEBUG LOG
     try {
       if (paymentToEdit) {
-        await api.put(`/payments/${paymentToEdit._id}`, payload);
+        const response = await api.put(
+          `/payments/${paymentToEdit._id}`,
+          payload,
+        );
+        console.log('Update response:', response.data); // DEBUG LOG
         toast.success('Record updated!');
       } else {
-        await api.post('/payments', payload);
+        const response = await api.post('/payments', payload);
+        console.log('Create response:', response.data); // DEBUG LOG
         toast.success('Record created!');
       }
       onUpdate();
       onClose();
     } catch (error) {
+      console.error('Payment submission error:', error); // DEBUG LOG
       toast.error('An error occurred.');
     }
   };
@@ -138,7 +180,7 @@ export function PaymentModal({
             </h2>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium">Name</label>
+                <label className="block text-sm font-medium">Trainer</label>
                 <select
                   {...register('trainer')}
                   className={`w-full border rounded px-3 py-2 mt-1 ${
@@ -148,7 +190,7 @@ export function PaymentModal({
                   <option value="">Select a user</option>
                   {users.map((user: any) => (
                     <option key={user._id} value={user._id}>
-                      {user.name} ({user.role || 'N/A'})
+                      {user.name}
                     </option>
                   ))}
                 </select>
@@ -159,13 +201,20 @@ export function PaymentModal({
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium">Role</label>
+                <label className="block text-sm font-medium">Class Title</label>
                 <input
                   type="text"
-                  value={selectedTrainerRole}
-                  disabled
-                  className="w-full border border-gray-200 rounded px-3 py-2 mt-1 bg-gray-100 text-gray-500"
+                  {...register('classTitle')}
+                  className={`w-full border rounded px-3 py-2 mt-1 ${
+                    errors.classTitle ? 'border-red-500' : ''
+                  }`}
+                  placeholder="Enter class title"
                 />
+                {errors.classTitle && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.classTitle.message}
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium">Details</label>
@@ -243,23 +292,6 @@ export function PaymentModal({
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium">Date</label>
-                  <input
-                    type="date"
-                    {...register('date')}
-                    className={`w-full border rounded px-3 py-2 mt-1 ${
-                      errors.date ? 'border-red-500' : ''
-                    }`}
-                  />
-                  {errors.date && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.date.message}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
                   <label className="block text-sm font-medium">Status</label>
                   <select
                     {...register('status')}
@@ -276,22 +308,110 @@ export function PaymentModal({
                     </p>
                   )}
                 </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium">Notes</label>
-                  <textarea
-                    {...register('notes')}
-                    className={`w-full border rounded px-3 py-2 mt-1 ${
-                      errors.notes ? 'border-red-500' : ''
-                    }`}
-                    rows={3}
-                    placeholder="Optional notes..."
-                  />
-                  {errors.notes && (
+                  <label className="block text-sm font-medium">Priority</label>
+                  <select
+                    {...register('priority')}
+                    className={`w-full border rounded px-3 py-2 mt-1 ${errors.priority ? 'border-red-500' : ''}`}
+                  >
+                    <option value="LOW">Low</option>
+                    <option value="NORMAL">Normal</option>
+                    <option value="HIGH">High</option>
+                  </select>
+                  {errors.priority && (
                     <p className="text-red-500 text-sm mt-1">
-                      {errors.notes.message}
+                      {errors.priority.message}
                     </p>
                   )}
                 </div>
+                <div>
+                  <label className="block text-sm font-medium">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    {...register('startDate')}
+                    className={`w-full border rounded px-3 py-2 mt-1 ${errors.startDate ? 'border-red-500' : ''}`}
+                  />
+                  {errors.startDate && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.startDate.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium">Due Date</label>
+                  <input
+                    type="date"
+                    {...register('dueDate')}
+                    className={`w-full border rounded px-3 py-2 mt-1 ${errors.dueDate ? 'border-red-500' : ''}`}
+                  />
+                  {errors.dueDate && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.dueDate.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium">
+                    Assigned To
+                  </label>
+                  <select
+                    {...register('assignedTo')}
+                    className={`w-full border rounded px-3 py-2 mt-1 ${errors.assignedTo ? 'border-red-500' : ''}`}
+                  >
+                    <option value="">Select User</option>
+                    {users.map((user) => (
+                      <option key={user._id} value={user._id}>
+                        {user.name}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.assignedTo && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.assignedTo.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium">
+                    Reported To
+                  </label>
+                  <select
+                    {...register('reportedTo')}
+                    className={`w-full border rounded px-3 py-2 mt-1 ${errors.reportedTo ? 'border-red-500' : ''}`}
+                  >
+                    <option value="">Select User</option>
+                    {users.map((user) => (
+                      <option key={user._id} value={user._id}>
+                        {user.name}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.reportedTo && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.reportedTo.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium">Notes</label>
+                <textarea
+                  {...register('notes')}
+                  className={`w-full border rounded px-3 py-2 mt-1 ${errors.notes ? 'border-red-500' : ''}`}
+                  rows={3}
+                  placeholder="Optional notes..."
+                />
+                {errors.notes && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.notes.message}
+                  </p>
+                )}
               </div>
               <div className="flex justify-end gap-3 pt-4">
                 <button

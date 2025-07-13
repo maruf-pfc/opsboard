@@ -15,7 +15,10 @@ export const userSchema = z.object({
     'Developer',
     'Teaching Assistant',
   ]),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z
+    .string()
+    .min(6, 'Password must be at least 6 characters')
+    .optional(),
   phone: z.string().optional(),
   facebookUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
   profileImage: z.string().optional(),
@@ -48,7 +51,6 @@ export const userProfileSchema = z.object({
 export const paymentSchema = z.object({
   trainer: z.string().min(1, 'Please select a trainer'),
   name: z.string().min(1, 'Name is required'),
-  role: z.string().min(1, 'Role is required'),
   details: z
     .object({
       courseName: z.enum(['CPC', 'JIPC', 'Bootcamp', 'Others']).optional(),
@@ -56,9 +58,14 @@ export const paymentSchema = z.object({
       classNo: z.string().optional(),
     })
     .optional(),
+  classTitle: z.string().min(1, 'Class title is required'),
   amount: z.number().min(0, 'Amount must be positive'),
   status: z.enum(['Pending', 'Paid']),
-  date: z.string().optional(),
+  priority: z.enum(['LOW', 'NORMAL', 'HIGH']),
+  startDate: z.string().optional(),
+  dueDate: z.string().optional(),
+  assignedTo: z.string().optional(),
+  reportedTo: z.string().optional(),
   notes: z.string().optional(),
   processedBy: z.string().optional(),
 });

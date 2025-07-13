@@ -3,20 +3,16 @@ import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
-import { classNames } from '@/lib/utils';
+import { classNames, formatDateForDisplay } from '@/lib/utils';
 
 // Patch: Extend IPayment.trainer to include role for table display
 type TrainerWithRole = {
   _id: string;
   name: string;
-  role?: string;
   profileImage?: string;
 };
 interface PaymentWithRole extends Omit<IPayment, 'trainer'> {
   trainer: TrainerWithRole;
-  courseName?: string;
-  batchNo?: string;
-  classNo?: string;
 }
 
 type PaymentTableProps = {
@@ -54,16 +50,16 @@ export function PaymentTable({
               Name
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+              Class Title
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
               Details
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-              Role
+              Start Date
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
               Amount
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-              Date
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
               Status
@@ -92,27 +88,33 @@ export function PaymentTable({
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                 {payment.trainer.name}
               </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {payment.classTitle}
+              </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {payment.courseName || payment.batchNo || payment.classNo
+                {payment.details?.courseName ||
+                payment.details?.batchNo ||
+                payment.details?.classNo
                   ? [
-                      payment.courseName
-                        ? `Course: ${payment.courseName}`
+                      payment.details?.courseName
+                        ? `Course: ${payment.details.courseName}`
                         : null,
-                      payment.batchNo ? `Batch: ${payment.batchNo}` : null,
-                      payment.classNo ? `Class: ${payment.classNo}` : null,
+                      payment.details?.batchNo
+                        ? `Batch: ${payment.details.batchNo}`
+                        : null,
+                      payment.details?.classNo
+                        ? `Class: ${payment.details.classNo}`
+                        : null,
                     ]
                       .filter(Boolean)
                       .join(', ')
                   : '-'}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {payment.trainer.role || 'N/A'}
+                {formatDateForDisplay(payment.startDate)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 ${payment.amount.toFixed(2)}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {format(new Date(payment.createdAt), 'PP')}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <span

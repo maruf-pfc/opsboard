@@ -26,6 +26,7 @@ export default function UserProfilePage() {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<UserProfileFormData>({
     resolver: zodResolver(userProfileSchema),
@@ -36,6 +37,7 @@ export default function UserProfilePage() {
       facebookUrl: '',
       password: '',
       profileImage: '',
+      role: 'MEMBER',
     },
   });
 
@@ -61,11 +63,17 @@ export default function UserProfilePage() {
           profileImage: '',
           role: data.role || 'MEMBER',
         });
-        setImagePreview(data.profileImage || null);
       })
       .catch(() => toast.error('Failed to load user profile'))
       .finally(() => setLoading(false));
   }, [userId, reset]);
+
+  // Always set role in form state after reset
+  useEffect(() => {
+    if (profile && profile.role) {
+      setValue('role', profile.role);
+    }
+  }, [profile, setValue]);
 
   if (isLoading || loading || !user) return <div>Loading...</div>;
   if (!profile) return <div>User not found.</div>;
@@ -90,11 +98,21 @@ export default function UserProfilePage() {
   };
 
   const onSubmit = async (data: UserProfileFormData) => {
+    console.log('Submitting user profile update', data); // DEBUG LOG
     try {
       const updateData: any = { ...data };
       if (!data.profileImage) delete updateData.profileImage;
       if (!data.password) delete updateData.password;
-      await api.put(`/users/${userId}/profile`, updateData);
+      // Always include role for admin/manager/trainer editing another user
+      if (
+        user._id !== userId &&
+        ['ADMIN', 'MANAGER', 'TRAINER'].includes(user.role)
+      ) {
+        if (!updateData.role) updateData.role = profile.role || 'MEMBER';
+        await api.put(`/users/${userId}`, updateData);
+      } else {
+        await api.put(`/users/${userId}/profile`, updateData);
+      }
       toast.success('Profile updated!');
       router.refresh();
     } catch (err: any) {
@@ -263,6 +281,28 @@ export default function UserProfilePage() {
               </p>
             )}
           </div>
+          {/* Always include role in form state, even if not shown */}
+          <input type="hidden" {...register('role')} />
+          {/* Only show role field if admin/manager/trainer and not editing self */}
+          {user._id !== userId &&
+            ['ADMIN', 'MANAGER', 'TRAINER'].includes(user.role) && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Role
+                </label>
+                <select
+                  {...register('role')}
+                  className={`input input-bordered w-full`}
+                >
+                  <option value="ADMIN">Admin</option>
+                  <option value="MANAGER">Manager</option>
+                  <option value="TRAINER">Trainer</option>
+                  <option value="Developer">Developer</option>
+                  <option value="Teaching Assistant">Teaching Assistant</option>
+                  <option value="MEMBER">Member</option>
+                </select>
+              </div>
+            )}
         </div>
         <button
           type="submit"

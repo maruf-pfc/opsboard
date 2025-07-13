@@ -81,12 +81,12 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
           },
         },
       ]);
-      // Monthly analytics (amount paid per month, using 'date' field)
+      // Monthly analytics (amount paid per month, using 'startDate' field)
       const monthlyAnalytics = await Payment.aggregate([
-        { $match: { status: 'Paid', date: { $ne: null } } },
+        { $match: { status: 'Paid', startDate: { $ne: null } } },
         {
           $group: {
-            _id: { $dateToString: { format: '%Y-%m', date: '$date' } },
+            _id: { $dateToString: { format: '%Y-%m', date: '$startDate' } },
             totalPaid: { $sum: '$amount' },
             count: { $sum: 1 },
           },
@@ -94,6 +94,14 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
         { $sort: { _id: -1 } },
         { $limit: 6 }, // last 6 months
       ]);
+
+      console.log('Payment analytics data:', {
+        pendingPayments: pendingPayments[0] || { count: 0, totalAmount: 0 },
+        paidPayments: paidPayments[0] || { count: 0, totalAmount: 0 },
+        monthlyAnalytics: monthlyAnalytics,
+        note: 'Using startDate for monthly analytics',
+      }); // DEBUG LOG
+
       paymentStats = {
         pendingCount: pendingPayments[0]?.count || 0,
         pendingAmount: pendingPayments[0]?.totalAmount || 0,
