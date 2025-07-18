@@ -15,15 +15,14 @@ COPY . .
 # ---- Production Stage ----
 FROM node:20-alpine
 WORKDIR /app
-# Install pnpm globally in the production stage as well
-# This ensures 'pnpm' command is available for CMD or other scripts
+# Install pnpm globally in the production stage
+# This is crucial because global installations from 'builder' stage are not copied.
 RUN npm install -g pnpm
 # Copy the built application from the builder stage
 COPY --from=builder /app /app
-# Install only production dependencies (pnpm is now available)
+# Install only production dependencies (pnpm is now available in this stage)
 RUN pnpm install --prod --frozen-lockfile
 ENV NODE_ENV=production
 EXPOSE 7777
 
-CMD ["pnpm", "start"] 
-    
+CMD ["pnpm", "start"]
