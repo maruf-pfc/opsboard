@@ -4,11 +4,11 @@ import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { TaskStatsCards } from '@/components/dashboard/TaskStatsCards';
-import { UserStatsCards } from '@/components/dashboard/UserStatsCards';
-import { RecentTasksList } from '@/components/dashboard/RecentTasksList';
-import { UpcomingClassesList } from '@/components/dashboard/UpcomingClassesList';
-import { AdminPaymentStats } from '@/components/dashboard/AdminPaymentStats';
+import { TaskStatsCards } from '@/components/dashboard/TaskStatsCards'; // Assuming this component is responsive
+import { UserStatsCards } from '@/components/dashboard/UserStatsCards'; // Assuming this component is responsive
+import { RecentTasksList } from '@/components/dashboard/RecentTasksList'; // Assuming this component is responsive
+import { UpcomingClassesList } from '@/components/dashboard/UpcomingClassesList'; // Assuming this component is responsive
+import { AdminPaymentStats } from '@/components/dashboard/AdminPaymentStats'; // Assuming this component is responsive
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -23,15 +23,17 @@ import {
   UserGroupIcon,
   ClipboardDocumentListIcon,
   CurrencyDollarIcon,
+  ChartBarSquareIcon, // Using a more relevant icon for charts
 } from '@heroicons/react/24/outline';
 
+// Register Chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
   Title,
   Tooltip,
-  Legend,
+  Legend
 );
 
 // Define the shape of the data we expect from the API
@@ -82,20 +84,9 @@ export default function DashboardPage() {
       setIsLoading(true);
       try {
         const { data } = await api.get('/stats');
-        console.log('Dashboard stats received:', data); // DEBUG LOG
-        if (data.payments) {
-          console.log('Payment analytics:', {
-            pendingCount: data.payments.pendingCount,
-            pendingAmount: data.payments.pendingAmount,
-            paidCount: data.payments.paidCount,
-            paidAmount: data.payments.paidAmount,
-            monthlyAnalytics: data.payments.monthlyAnalytics,
-            note: 'Analytics based on startDate field',
-          }); // DEBUG LOG
-        }
         setStats(data);
       } catch (error) {
-        console.error('Error fetching dashboard stats:', error); // DEBUG LOG
+        console.error('Error fetching dashboard stats:', error);
         toast.error('Could not load dashboard statistics.');
       } finally {
         setIsLoading(false);
@@ -104,37 +95,111 @@ export default function DashboardPage() {
     fetchStats();
   }, []);
 
+  // Display a loading state while dashboard data is being fetched
   if (isLoading || !stats) {
-    return <div>Loading dashboard...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100">
+        <div className="flex flex-col items-center p-8 bg-white rounded-xl shadow-xl">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-500 border-t-transparent mb-4"></div>
+          <p className="text-xl font-semibold text-gray-700">
+            Loading Dashboard...
+          </p>
+          <p className="text-sm text-gray-500 mt-2">
+            Gathering your workspace insights.
+          </p>
+        </div>
+      </div>
+    );
   }
 
+  // Prepare data for the monthly payment chart
   const paymentData = stats.payments?.monthlyAnalytics || [];
-  console.log('Chart payment data:', paymentData); // DEBUG LOG
 
   const barData = {
-    labels: paymentData.map((m) => m._id),
+    labels: paymentData.map((m) => m._id), // Month labels (e.g., "2023-10")
     datasets: [
       {
         label: 'Total Paid',
         data: paymentData.map((m) => m.totalPaid),
-        backgroundColor: 'rgba(99, 102, 241, 0.7)', // indigo-500
+        backgroundColor: 'rgba(99, 102, 241, 0.8)', // Tailwind indigo-500 with slight transparency
+        borderColor: 'rgba(99, 102, 241, 1)',
+        borderWidth: 1,
+        borderRadius: 8, // Rounded bars
+        barThickness: 'flex' as const, // Adjusts bar width based on available space
+        maxBarThickness: 50, // Maximum width for bars
       },
     ],
   };
 
   const barOptions = {
     responsive: true,
-    maintainAspectRatio: false,
+    maintainAspectRatio: false, // Allow chart to fill container
     plugins: {
-      legend: { display: false },
-      title: { display: false },
+      legend: {
+        display: true, // Display legend
+        position: 'top' as const,
+        labels: {
+          font: {
+            size: 14,
+            family: 'Inter, sans-serif',
+          },
+          color: '#374151', // gray-700
+        },
+      },
+      title: {
+        display: false, // Title is handled by h2 outside the chart
+      },
+      tooltip: {
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        bodyFont: {
+          size: 14,
+          family: 'Inter, sans-serif',
+        },
+        titleFont: {
+          size: 16,
+          family: 'Inter, sans-serif',
+          weight: 'bold' as const,
+        },
+        callbacks: {
+          label: function (context: any) {
+            let label = context.dataset.label || '';
+            if (label) {
+              label += ': ';
+            }
+            if (context.parsed.y !== null) {
+              label += '৳' + context.parsed.y.toLocaleString();
+            }
+            return label;
+          },
+        },
+      },
     },
     scales: {
+      x: {
+        grid: {
+          display: false, // Hide x-axis grid lines
+        },
+        ticks: {
+          color: '#4B5563', // gray-600
+          font: {
+            size: 12,
+            family: 'Inter, sans-serif',
+          },
+        },
+      },
       y: {
         beginAtZero: true,
+        grid: {
+          color: '#E5E7EB', // gray-200
+        },
         ticks: {
           callback: function (value: any) {
-            return '$' + value.toLocaleString();
+            return '৳' + value.toLocaleString();
+          },
+          color: '#4B5563', // gray-600
+          font: {
+            size: 12,
+            family: 'Inter, sans-serif',
           },
         },
       },
@@ -142,23 +207,27 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-12 p-4 sm:p-6 lg:p-8 font-sans">
       {/* Welcome Section */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-2">
+      <div className="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 lg:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-2 tracking-tight drop-shadow-sm">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-3 tracking-tight drop-shadow-sm leading-tight">
             Welcome back,{' '}
-            <span className="bg-gradient-to-r from-indigo-500 to-blue-500 bg-clip-text text-transparent">
+            <br />
+            <span className="bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
               {user?.name}!
             </span>
           </h1>
-          <p className="text-gray-500 text-lg md:text-xl font-medium">
-            Here's a summary of what's happening across your workspace.
+          <p className="text-gray-600 text-lg sm:text-xl font-medium max-w-2xl">
+            Here's a comprehensive summary of what's happening across your
+            workspace.
           </p>
         </div>
-        <div className="flex flex-wrap gap-4 justify-start md:justify-end">
-          <div className="bg-gradient-to-br from-indigo-500 to-blue-500 text-white rounded-2xl px-7 py-5 flex items-center gap-4 shadow-xl hover:scale-105 transition-transform duration-200">
-            <UserGroupIcon className="h-10 w-10 opacity-80" />
+        {/* Quick Stats Cards (Total Users, Total Tasks, Total Paid) */}
+        <div className="flex flex-wrap gap-4 justify-center md:justify-end">
+          {/* Total Users Card */}
+          <div className="bg-gradient-to-br from-indigo-500 to-blue-500 text-white rounded-2xl px-6 py-4 flex items-center gap-4 shadow-xl hover:scale-105 transition-transform duration-200 min-w-[200px] flex-1 sm:flex-none">
+            <UserGroupIcon className="h-9 w-9 opacity-80" />
             <div>
               <div className="text-3xl font-bold leading-tight">
                 {stats.users.total}
@@ -168,8 +237,9 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
-          <div className="bg-gradient-to-br from-green-400 to-green-600 text-white rounded-2xl px-7 py-5 flex items-center gap-4 shadow-xl hover:scale-105 transition-transform duration-200">
-            <ClipboardDocumentListIcon className="h-10 w-10 opacity-80" />
+          {/* Total Tasks Card */}
+          <div className="bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-2xl px-6 py-4 flex items-center gap-4 shadow-xl hover:scale-105 transition-transform duration-200 min-w-[200px] flex-1 sm:flex-none">
+            <ClipboardDocumentListIcon className="h-9 w-9 opacity-80" />
             <div>
               <div className="text-3xl font-bold leading-tight">
                 {stats.tasks.total}
@@ -179,12 +249,13 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
+          {/* Total Paid Card (Admin Only) */}
           {user?.role === 'ADMIN' && stats.payments && (
-            <div className="bg-gradient-to-br from-yellow-400 to-yellow-600 text-white rounded-2xl px-7 py-5 flex items-center gap-4 shadow-xl hover:scale-105 transition-transform duration-200">
-              <CurrencyDollarIcon className="h-10 w-10 opacity-80" />
+            <div className="bg-gradient-to-br from-amber-500 to-orange-600 text-white rounded-2xl px-6 py-4 flex items-center gap-4 shadow-xl hover:scale-105 transition-transform duration-200 min-w-[200px] flex-1 sm:flex-none">
+              <CurrencyDollarIcon className="h-9 w-9 opacity-80" />
               <div>
                 <div className="text-3xl font-bold leading-tight">
-                  ${stats.payments.paidAmount.toLocaleString()}
+                  ৳{stats.payments.paidAmount.toLocaleString()}
                 </div>
                 <div className="text-base font-medium opacity-80">
                   Total Paid
@@ -195,64 +266,75 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Main Stats Cards & Chart */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Side: Task and User Stats stacked vertically */}
-        <div className="lg:col-span-2 flex flex-col gap-8">
+      {/* Main Stats Cards (Task and User) - Now in a vertical stack (3 rows implicitly) */}
+      <div className="flex flex-col gap-8">
+        {' '}
+        {/* Changed to flex-col for vertical stacking */}
+        {/* Task Stats Cards */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
           <TaskStatsCards stats={stats.tasks} />
+        </div>
+        {/* User Stats Cards */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
           <UserStatsCards stats={stats.users} />
         </div>
-
-        {/* Right Side: Admin-only Payment Chart */}
-        {user?.role === 'ADMIN' && stats.payments && (
-          <div className="lg:col-span-1 flex flex-col h-full">
-            <div className="bg-white rounded-2xl shadow-2xl p-8 h-full flex flex-col hover:shadow-3xl transition-shadow duration-200">
-              <h2 className="text-xl font-bold mb-6 text-gray-800 flex items-center gap-2">
-                <CurrencyDollarIcon className="h-6 w-6 text-yellow-500" />
-                Payment Analytics (Last 6 Months)
-              </h2>
-              <div className="flex-1 min-h-[250px]">
-                {paymentData.length > 0 ? (
-                  <Bar data={barData} options={barOptions} />
-                ) : (
-                  <div className="flex items-center justify-center h-full text-gray-500">
-                    <div className="text-center">
-                      <CurrencyDollarIcon className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                      <p className="text-lg font-medium">
-                        No payment data available
-                      </p>
-                      <p className="text-sm">
-                        Payment analytics will appear here once payments are
-                        made
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Admin-only Stats */}
+      {/* Monthly Payment Analytics Chart (Admin Only) - Now in its own row */}
       {user?.role === 'ADMIN' && stats.payments && (
-        <div className="bg-white rounded-2xl shadow-lg p-6">
+        <div className="w-full">
+          {' '}
+          {/* Full width div */}
+          <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 h-full flex flex-col hover:shadow-3xl transition-shadow duration-200">
+            <h2 className="text-xl sm:text-2xl font-bold mb-6 text-gray-800 flex items-center gap-3">
+              <ChartBarSquareIcon className="h-7 w-7 text-indigo-500" />
+              Monthly Payment Analytics
+            </h2>
+            <div className="flex-1 min-h-[250px] flex items-center justify-center">
+              {paymentData.length > 0 ? (
+                <Bar data={barData} options={barOptions} />
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-gray-500 p-4">
+                  <CurrencyDollarIcon className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                  <p className="text-lg font-medium text-center">
+                    No payment data available yet.
+                  </p>
+                  <p className="text-sm text-center mt-1">
+                    Payment analytics will appear here once records are logged.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Admin-only Payment Summary Stats */}
+      {user?.role === 'ADMIN' && stats.payments && (
+        <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
           <AdminPaymentStats stats={stats.payments} />
         </div>
       )}
 
-      {/* Two-column layout for lists */}
+      {/* Two-column layout for Recent and High Priority Tasks */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="bg-white rounded-2xl shadow-lg p-6">
+        <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
           <RecentTasksList tasks={stats.tasks.recent} />
         </div>
-        <div className="bg-white rounded-2xl shadow-lg p-6">
+        <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
           <RecentTasksList
             tasks={stats.tasks.highPriority}
             title="High Priority Tasks"
           />
         </div>
       </div>
+
+      {/* Upcoming Classes List (if applicable) */}
+      {stats.classes.upcoming && stats.classes.upcoming.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
+          <UpcomingClassesList classes={stats.classes.upcoming} />
+        </div>
+      )}
     </div>
   );
 }

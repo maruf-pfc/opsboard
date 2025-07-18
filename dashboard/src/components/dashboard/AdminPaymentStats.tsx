@@ -40,13 +40,13 @@ export function AdminPaymentStats({ stats }: { stats: any }) {
         />
         <StatCard
           title="Total Amount Due"
-          value={`$${stats.dueAmount.toFixed(2)}`}
+          value={`৳${stats.dueAmount.toFixed(2)}`}
           icon={BanknotesIcon}
           colorClass="bg-orange-500"
         />
         <StatCard
           title="Total Paid"
-          value={`$${stats.paidAmount.toFixed(2)}`}
+          value={`৳${stats.paidAmount.toFixed(2)}`}
           icon={BanknotesIcon}
           colorClass="bg-green-500"
         />

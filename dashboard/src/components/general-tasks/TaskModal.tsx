@@ -5,12 +5,15 @@ import { motion } from 'framer-motion';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 import { ITask } from './TaskBoard';
-import { SubtaskList } from './SubtaskList';
 import { CommentSection } from './CommentSection';
 import { classNames } from '@/lib/utils';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import {
+  XMarkIcon,
+  PlusIcon,
+  PencilSquareIcon,
+} from '@heroicons/react/24/outline';
 import { z } from 'zod';
 
 // Define a more detailed type for a user (for the dropdown)
@@ -42,7 +45,7 @@ export interface Task {
   title: string;
   description?: string;
   status: 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'COMPLETED' | 'BLOCKED';
-  priority: 'LOW' | 'NORMAL' | 'HIGH';
+  priority: 'NORMAL' | 'MEDIUM' | 'HIGH';
   assignedTo: User;
   reportedTo: User;
   startDate?: string;
@@ -61,33 +64,17 @@ interface TaskModalProps {
   task: Task | null;
 }
 
-// Update Zod schema to match backend model
+// Update Zod schema to match backend model and frontend form expectations
 const taskSchema = z.object({
   title: z.string().min(1, 'Task title is required'),
   description: z.string().optional(),
   status: z.enum(['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'COMPLETED', 'BLOCKED']),
-  priority: z.enum(['LOW', 'NORMAL', 'HIGH']),
+  priority: z.enum(['NORMAL', 'MEDIUM', 'HIGH']),
   assignedTo: z.string().min(1, 'Assigned to is required'),
   reportedTo: z.string().min(1, 'Reported to is required'),
   startDate: z.string().optional(),
   dueDate: z.string().optional(),
   notes: z.string().optional(),
-  comments: z
-    .array(
-      z.object({
-        _id: z.string(),
-        content: z.string(),
-        author: z.object({
-          _id: z.string(),
-          name: z.string(),
-          email: z.string(),
-          profileImage: z.string().optional(),
-        }),
-        createdAt: z.string(),
-        parentId: z.string().optional(),
-      }),
-    )
-    .optional(),
 });
 
 type TaskFormData = z.infer<typeof taskSchema>;
@@ -99,10 +86,7 @@ export default function TaskModal({
   users,
   task,
 }: TaskModalProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [newComment, setNewComment] = useState('');
-  const [replyingTo, setReplyingTo] = useState<string | null>(null);
-  const [replyContent, setReplyContent] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   const {
     register,
@@ -122,10 +106,10 @@ export default function TaskModal({
       startDate: '',
       dueDate: '',
       notes: '',
-      comments: [],
     },
   });
 
+  // Effect to reset form when modal opens or task data changes
   useEffect(() => {
     if (task) {
       reset({
@@ -136,13 +120,12 @@ export default function TaskModal({
         assignedTo: task.assignedTo?._id || '',
         reportedTo: task.reportedTo?._id || '',
         startDate: task.startDate
-          ? new Date(task.startDate).toISOString().slice(0, 16)
+          ? new Date(task.startDate).toISOString().split('T')[0]
           : '',
         dueDate: task.dueDate
-          ? new Date(task.dueDate).toISOString().slice(0, 16)
+          ? new Date(task.dueDate).toISOString().split('T')[0]
           : '',
         notes: task.notes || '',
-        comments: task.comments || [],
       });
     } else {
       reset({
@@ -155,45 +138,14 @@ export default function TaskModal({
         startDate: '',
         dueDate: '',
         notes: '',
-        comments: [],
       });
     }
-  }, [task, reset]);
+  }, [task, isOpen, reset]);
 
-  const handleAddComment = async () => {
-    if (!newComment.trim() || !task?._id) return;
-
-    try {
-      const response = await api.post(`/tasks/${task._id}/comments`, {
-        content: newComment.trim(),
-      });
-      setNewComment('');
-      onSave(response.data);
-      toast.success('Comment added!');
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Failed to add comment');
-    }
-  };
-
-  const handleAddReply = async (parentCommentId: string) => {
-    if (!replyContent.trim() || !task?._id) return;
-    try {
-      const response = await api.post(`/tasks/${task._id}/comments`, {
-        content: replyContent.trim(),
-        parentId: parentCommentId,
-      });
-      setReplyContent('');
-      setReplyingTo(null);
-      onSave(response.data);
-      toast.success('Reply added!');
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Failed to add reply');
-    }
-  };
-
+  // Main form submission handler (create/update task)
   const onSubmit = async (data: TaskFormData) => {
     try {
-      setIsSubmitting(true);
+      setIsSaving(true);
       const payload = {
         title: data.title,
         description: data.description,
@@ -204,404 +156,370 @@ export default function TaskModal({
         startDate: data.startDate ? new Date(data.startDate) : undefined,
         dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
         notes: data.notes,
-        comments: data.comments,
       };
 
       let response;
       if (task && task._id) {
         response = await api.put(`/tasks/${task._id}`, payload);
-        toast.success('Task updated!');
+        toast.success('Task updated successfully!');
       } else {
         response = await api.post('/tasks', payload);
-        toast.success('Task created!');
+        toast.success('Task created successfully!');
       }
       onSave(response.data);
       onClose();
     } catch (err: any) {
+      console.error('Task save error:', err.response?.data || err);
       toast.error(err?.response?.data?.message || 'Failed to save task.');
     } finally {
-      setIsSubmitting(false);
+      setIsSaving(false);
     }
   };
 
-  if (!isOpen) return null;
-
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
-        <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm"
-          aria-hidden="true"
-        />
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="w-full max-w-2xl bg-white rounded-lg shadow-lg p-8 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between py-6">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {task ? 'Edit Task' : 'Create New Task'}
-              </h2>
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <XMarkIcon className="h-6 w-6" />
-              </button>
-            </div>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {/* Task Title */}
-              <div>
-                <label className="block text-sm font-medium">Title</label>
-                <input
-                  type="text"
-                  {...register('title', { required: true })}
-                  className={`w-full border rounded px-3 py-2 mt-1 ${errors.title ? 'border-red-500' : ''}`}
-                />
-                {errors.title && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.title.message}
-                  </p>
-                )}
-              </div>
+      <Dialog as="div" className="relative z-50 font-sans" onClose={onClose}>
+        {/* Backdrop overlay */}
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+            aria-hidden="true"
+          />
+        </Transition.Child>
 
-              {/* Task Description */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Task Description
-                </label>
-                <textarea
-                  {...register('description')}
-                  rows={3}
-                  className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                    errors.description ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="Enter task description"
-                />
-                {errors.description && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.description.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Status and Priority */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Status *
-                  </label>
-                  <select
-                    {...register('status')}
-                    className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.status ? 'border-red-500' : 'border-gray-300'
-                    }`}
+        {/* Modal content wrapper */}
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-6">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="w-full max-w-2xl transform rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all sm:p-8 max-h-[90vh] overflow-y-auto">
+                {' '}
+                {/* FIX: Changed overflow-hidden to overflow-y-auto */}
+                {/* Modal Header */}
+                <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+                  <Dialog.Title
+                    as="h2"
+                    className="text-2xl font-extrabold leading-6 text-gray-900"
                   >
-                    <option value="TODO">To Do</option>
-                    <option value="IN_PROGRESS">In Progress</option>
-                    <option value="IN_REVIEW">In Review</option>
-                    <option value="COMPLETED">Completed</option>
-                    <option value="BLOCKED">Blocked</option>
-                  </select>
-                  {errors.status && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.status.message}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Priority *
-                  </label>
-                  <select
-                    {...register('priority')}
-                    className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.priority ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  >
-                    <option value="LOW">Low</option>
-                    <option value="NORMAL">Normal</option>
-                    <option value="HIGH">High</option>
-                  </select>
-                  {errors.priority && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.priority.message}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Assigned To and Reported To */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Assigned To *
-                  </label>
-                  <select
-                    {...register('assignedTo')}
-                    className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.assignedTo ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  >
-                    <option value="">Select assigned user</option>
-                    {users.map((user) => (
-                      <option key={user._id} value={user._id}>
-                        {user.name}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.assignedTo && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.assignedTo.message}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Reported To *
-                  </label>
-                  <select
-                    {...register('reportedTo')}
-                    className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
-                      errors.reportedTo ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  >
-                    <option value="">Select reported user</option>
-                    {users.map((user) => (
-                      <option key={user._id} value={user._id}>
-                        {user.name}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.reportedTo && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.reportedTo.message}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Start Date and Due Date */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Start Date
-                  </label>
-                  <input
-                    type="date"
-                    {...register('startDate')}
-                    className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.startDate ? 'border-red-500' : 'border-gray-300'}`}
-                  />
-                  {errors.startDate && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.startDate.message}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Due Date
-                  </label>
-                  <input
-                    type="date"
-                    {...register('dueDate')}
-                    className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.dueDate ? 'border-red-500' : 'border-gray-300'}`}
-                  />
-                  {errors.dueDate && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.dueDate.message}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Notes */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Notes
-                </label>
-                <textarea
-                  {...register('notes')}
-                  className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${errors.notes ? 'border-red-500' : 'border-gray-300'}`}
-                />
-                {errors.notes && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.notes.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Comments Section */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Comments
-                </label>
-                {/* Add New Comment */}
-                <div className="mb-4">
-                  <textarea
-                    placeholder="Add a comment..."
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    rows={2}
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                  />
+                    {task ? 'Edit Task' : 'Create New Task'}
+                  </Dialog.Title>
                   <button
                     type="button"
-                    onClick={handleAddComment}
-                    disabled={!newComment.trim()}
-                    className="mt-2 px-3 py-1 text-xs font-medium text-white bg-indigo-600 rounded hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    className="inline-flex justify-center rounded-full border border-transparent bg-gray-100 p-2 text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 transition-colors duration-200"
+                    onClick={onClose}
                   >
-                    Add Comment
+                    <XMarkIcon className="h-5 w-5" aria-hidden="true" />
                   </button>
                 </div>
-                {/* Existing Comments with Nested Replies */}
-                {task?.comments && task.comments.length > 0 && (
-                  <div className="max-h-60 overflow-y-auto space-y-3">
-                    {task.comments
-                      .filter((c) => !c.parentId)
-                      .map((comment) => (
-                        <div
-                          key={comment._id}
-                          className="bg-gray-50 p-4 rounded-lg border border-gray-200"
-                        >
-                          <div className="flex items-center gap-2 mb-2">
-                            {comment.author.profileImage ? (
-                              <img
-                                src={comment.author.profileImage}
-                                alt={comment.author.name}
-                                className="w-6 h-6 rounded-full"
-                              />
-                            ) : (
-                              <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold">
-                                {comment.author.name.charAt(0).toUpperCase()}
-                              </div>
-                            )}
-                            <span className="font-medium text-sm">
-                              {comment.author.name}
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              {new Date(comment.createdAt).toLocaleDateString()}
-                            </span>
-                            <button
-                              type="button"
-                              className="ml-auto text-indigo-500 hover:text-indigo-700 text-xs font-semibold cursor-pointer"
-                              onClick={() => setReplyingTo(comment._id)}
-                            >
-                              Reply
-                            </button>
-                          </div>
-                          <p className="text-sm text-gray-700 mb-3">
-                            {comment.content}
-                          </p>
-                          {/* Reply input */}
-                          {replyingTo === comment._id && (
-                            <div className="mb-3 ml-6 border-l-2 border-indigo-200 pl-4">
-                              <textarea
-                                placeholder="Write a reply..."
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                rows={2}
-                                value={replyContent}
-                                onChange={(e) =>
-                                  setReplyContent(e.target.value)
-                                }
-                              />
-                              <div className="flex gap-2 mt-2">
-                                <button
-                                  type="button"
-                                  onClick={() => handleAddReply(comment._id)}
-                                  disabled={!replyContent.trim()}
-                                  className="px-3 py-1 text-xs font-medium text-white bg-indigo-600 rounded hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                                >
-                                  Reply
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setReplyingTo(null);
-                                    setReplyContent('');
-                                  }}
-                                  className="px-3 py-1 text-xs font-medium text-gray-600 bg-gray-200 rounded hover:bg-gray-300 cursor-pointer"
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                          {/* Nested replies */}
-                          {task.comments &&
-                            task.comments.filter(
-                              (r) => r.parentId === comment._id,
-                            ).length > 0 && (
-                              <div className="ml-12 border-l-2 border-gray-200 pl-4 space-y-2">
-                                {task.comments
-                                  .filter((r) => r.parentId === comment._id)
-                                  .map((reply) => (
-                                    <div
-                                      key={reply._id}
-                                      className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm"
-                                    >
-                                      <div className="flex items-center gap-2 mb-1">
-                                        {reply.author.profileImage ? (
-                                          <img
-                                            src={reply.author.profileImage}
-                                            alt={reply.author.name}
-                                            className="w-5 h-5 rounded-full"
-                                          />
-                                        ) : (
-                                          <div className="w-5 h-5 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold">
-                                            {reply.author.name
-                                              .charAt(0)
-                                              .toUpperCase()}
-                                          </div>
-                                        )}
-                                        <span className="font-medium text-xs">
-                                          {reply.author.name}
-                                        </span>
-                                        <span className="text-xs text-gray-400">
-                                          {new Date(
-                                            reply.createdAt,
-                                          ).toLocaleDateString()}
-                                        </span>
-                                        <span className="text-xs text-indigo-600 font-medium ml-auto">
-                                          Reply
-                                        </span>
-                                      </div>
-                                      <p className="text-xs text-gray-700">
-                                        {reply.content}
-                                      </p>
-                                    </div>
-                                  ))}
-                              </div>
-                            )}
-                        </div>
-                      ))}
+                {/* Form */}
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                  {/* Task Title */}
+                  <div>
+                    <label
+                      htmlFor="title"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Title
+                    </label>
+                    <input
+                      type="text"
+                      id="title"
+                      {...register('title')}
+                      className="w-full min-w-0 border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 transition-all duration-200"
+                      placeholder="e.g., Implement user authentication"
+                    />
+                    {errors.title && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.title.message}
+                      </p>
+                    )}
                   </div>
-                )}
-              </div>
 
-              {/* Action Buttons */}
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  {isSubmitting
-                    ? 'Saving...'
-                    : task
-                      ? 'Update Task'
-                      : 'Create Task'}
-                </button>
-              </div>
-            </form>
-          </Dialog.Panel>
+                  {/* Task Description */}
+                  <div>
+                    <label
+                      htmlFor="description"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Task Description
+                    </label>
+                    <textarea
+                      id="description"
+                      {...register('description')}
+                      rows={6}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 transition-all duration-200 resize-y"
+                      placeholder="Provide a detailed description of the task requirements."
+                    />
+                    {errors.description && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.description.message}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Status and Priority */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        htmlFor="status"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Status *
+                      </label>
+                      <select
+                        id="status"
+                        {...register('status')}
+                        className={`w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 transition-all duration-200 ${
+                          errors.status ? 'border-red-500' : ''
+                        }`}
+                      >
+                        <option value="TODO">To Do</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="IN_REVIEW">In Review</option>
+                        <option value="COMPLETED">Completed</option>
+                        <option value="BLOCKED">Blocked</option>
+                      </select>
+                      {errors.status && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.status.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="priority"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Priority *
+                      </label>
+                      <select
+                        id="priority"
+                        {...register('priority')}
+                        className={`w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 transition-all duration-200 ${
+                          errors.priority ? 'border-red-500' : ''
+                        }`}
+                      >
+                        <option value="NORMAL">Normal</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="HIGH">High</option>
+                      </select>
+                      {errors.priority && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.priority.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Assigned To and Reported To */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        htmlFor="assignedTo"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Assigned To *
+                      </label>
+                      <select
+                        id="assignedTo"
+                        {...register('assignedTo')}
+                        className={`w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 transition-all duration-200 ${
+                          errors.assignedTo ? 'border-red-500' : ''
+                        }`}
+                      >
+                        <option value="">Select assigned user</option>
+                        {users.map((user) => (
+                          <option key={user._id} value={user._id}>
+                            {user.name}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.assignedTo && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.assignedTo.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="reportedTo"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Reported To *
+                      </label>
+                      <select
+                        id="reportedTo"
+                        {...register('reportedTo')}
+                        className={`w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 transition-all duration-200 ${
+                          errors.reportedTo ? 'border-red-500' : ''
+                        }`}
+                      >
+                        <option value="">Select reported user</option>
+                        {users.map((user) => (
+                          <option key={user._id} value={user._id}>
+                            {user.name}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.reportedTo && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.reportedTo.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Start Date and Due Date */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        htmlFor="startDate"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Start Date
+                      </label>
+                      <input
+                        type="date"
+                        id="startDate"
+                        {...register('startDate')}
+                        className={`w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 transition-all duration-200 ${
+                          errors.startDate ? 'border-red-500' : ''
+                        }`}
+                      />
+                      {errors.startDate && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.startDate.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="dueDate"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Due Date
+                      </label>
+                      <input
+                        type="date"
+                        id="dueDate"
+                        {...register('dueDate')}
+                        className={`w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 transition-all duration-200 ${
+                          errors.dueDate ? 'border-red-500' : ''
+                        }`}
+                      />
+                      {errors.dueDate && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.dueDate.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Notes */}
+                  <div>
+                    <label
+                      htmlFor="notes"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      Notes
+                    </label>
+                    <textarea
+                      id="notes"
+                      {...register('notes')}
+                      rows={4}
+                      className={`w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-1 transition-all duration-200 ${
+                        errors.notes ? 'border-red-500' : ''
+                      }`}
+                      placeholder="Any additional notes or details for the task..."
+                    />
+                    {errors.notes && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.notes.message}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Comments Section */}
+                  {task && (
+                    <CommentSection
+                      comments={task.comments || []}
+                      taskId={task._id as string}
+                      onUpdate={() => onSave(task)}
+                    />
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="inline-flex items-center px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105 font-medium cursor-pointer shadow-sm"
+                      disabled={isSaving}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSaving}
+                      className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-700 text-white rounded-lg shadow-lg hover:from-indigo-700 hover:to-purple-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105 font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSaving ? (
+                        <svg
+                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                      ) : task ? (
+                        <PencilSquareIcon className="h-5 w-5 mr-2" />
+                      ) : (
+                        <PlusIcon className="h-5 w-5 mr-2" />
+                      )}
+                      {isSaving
+                        ? task
+                          ? 'Updating...'
+                          : 'Creating...'
+                        : task
+                        ? 'Update Task'
+                        : 'Create Task'}
+                    </button>
+                  </div>
+                </form>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
         </div>
       </Dialog>
     </Transition>

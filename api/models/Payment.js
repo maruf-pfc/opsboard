@@ -41,7 +41,7 @@ const PaymentSchema = new mongoose.Schema(
     },
     priority: {
       type: String,
-      enum: ['LOW', 'NORMAL', 'HIGH'],
+      enum: ['NORMAL', 'MEDIUM', 'HIGH'],
       default: 'NORMAL',
     },
     startDate: {
@@ -66,7 +66,7 @@ const PaymentSchema = new mongoose.Schema(
       ref: 'User',
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 const Payment = mongoose.model('Payment', PaymentSchema);

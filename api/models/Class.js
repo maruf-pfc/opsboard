@@ -29,7 +29,7 @@ const ClassSchema = new mongoose.Schema(
     },
     priority: {
       type: String,
-      enum: ['LOW', 'NORMAL', 'HIGH'],
+      enum: ['NORMAL', 'MEDIUM', 'HIGH'],
       default: 'NORMAL',
     },
     assignedTo: {
@@ -54,7 +54,7 @@ const ClassSchema = new mongoose.Schema(
     // We can add enrolled students later if needed
     // students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 const Class = mongoose.model('Class', ClassSchema);

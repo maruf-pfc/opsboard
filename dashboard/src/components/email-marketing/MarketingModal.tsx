@@ -20,7 +20,7 @@ interface MarketingTask {
   title: string;
   description?: string;
   status: 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'COMPLETED' | 'BLOCKED';
-  priority: 'LOW' | 'NORMAL' | 'HIGH';
+  priority: 'NORMAL' | 'MEDIUM' | 'HIGH';
   dueDate?: string;
   assignedTo?: User;
   reportedTo?: User;
@@ -195,8 +195,8 @@ export default function MarketingTaskModal({
                     }`}
                   >
                     <option value="NORMAL">Normal</option>
+                    <option value="MEDIUM">Medium</option>
                     <option value="HIGH">High</option>
-                    <option value="LOW">Low</option>
                   </select>
                   {errors.priority && (
                     <p className="text-red-500 text-sm mt-1">
@@ -291,7 +291,9 @@ export default function MarketingTaskModal({
                 <label className="block text-sm font-medium">Notes</label>
                 <textarea
                   {...register('notes')}
-                  className={`w-full border rounded px-3 py-2 mt-1 ${errors.notes ? 'border-red-500' : ''}`}
+                  className={`w-full border rounded px-3 py-2 mt-1 ${
+                    errors.notes ? 'border-red-500' : ''
+                  }`}
                   rows={2}
                 />
                 {errors.notes && (

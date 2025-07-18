@@ -18,7 +18,7 @@ const TaskSchema = new mongoose.Schema(
     },
     priority: {
       type: String,
-      enum: ['LOW', 'NORMAL', 'HIGH'],
+      enum: ['NORMAL', 'MEDIUM', 'HIGH'],
       default: 'NORMAL',
     },
     assignedTo: {
@@ -65,7 +65,7 @@ const TaskSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 const Task = mongoose.model('Task', TaskSchema);
