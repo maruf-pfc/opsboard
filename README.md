@@ -1,11 +1,11 @@
-# OpsBoard: The All-in-One Task & Team Management Dashboard
+# CPS Task Manager: The All-in-One Task & Team Management Dashboard
 
-![OpsBoard API Status](https://img.shields.io/website?label=API%20Status&style=for-the-badge&url=http%3A%2F%2Flocalhost%3A5000)
+![CPS Task Manager API Status](https://img.shields.io/website?label=API%20Status&style=for-the-badge&url=http%3A%2F%2Flocalhost%3A7778)
 ![Tech Stack](https://img.shields.io/badge/Tech-MERN%2BNext.js-blue.svg?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-ISC-green.svg?style=for-the-badge)
 ![Node.js](https://img.shields.io/badge/Node.js-22+-green.svg?style=for-the-badge)
 
-**OpsBoard** is a comprehensive, full-featured internal management dashboard designed to bring clarity and efficiency to team workflows. Built as a reusable and scalable solution, it provides a centralized platform for task management, scheduling, payments, and internal communication, inspired by modern tools like Notion and ClickUp.
+**CPS Task Manager** is a comprehensive, full-featured internal management dashboard designed to bring clarity and efficiency to team workflows. Built as a reusable and scalable solution, it provides a centralized platform for task management, scheduling, payments, and internal communication, inspired by modern tools like Notion and ClickUp.
 
 This repository contains the complete monorepo-style project, housing both the backend API and the frontend client application.
 
@@ -25,7 +25,7 @@ This repository contains the complete monorepo-style project, housing both the b
 
    ```bash
    git clone <your-repo-url>
-   cd opsboard
+   cd CPS Task Manager
    ```
 
 2. **Install dependencies:**
@@ -47,7 +47,7 @@ This repository contains the complete monorepo-style project, housing both the b
    ```env
    # apps/api/.env
    PORT=5000
-   MONGODB_URI=mongodb://localhost:27017/opsboard
+   MONGODB_URI=mongodb://localhost:27017/CPS Task Manager
    JWT_SECRET=your-super-secret-jwt-key
    NODE_ENV=development
    ```
@@ -159,7 +159,7 @@ This repository contains the complete monorepo-style project, housing both the b
 ### Monorepo Structure
 
 ```
-opsboard/
+CPS Task Manager/
 ├── apps/
 │   ├── api/                 # Backend REST API
 │   ├── dashboard/           # Frontend Next.js App
@@ -366,7 +366,7 @@ pnpm check-types  # Type check
 
 ```env
 PORT=5001
-MONGODB_URI=mongodb://localhost:27017/opsboard
+MONGODB_URI=mongodb://localhost:27017/CPS Task Manager
 JWT_SECRET=your-super-secret-jwt-key
 NODE_ENV=development
 CLOUDINARY_CLOUD_NAME=your-cloud-name
@@ -459,10 +459,10 @@ NEXT_PUBLIC_API_URL=http://localhost:5001/api/v1
 
 ```bash
 # Build the Docker image
-docker build -t opsboard .
+docker build -t CPS Task Manager .
 
 # Run the container
-docker run -p 3000:3000 -p 5001:5001 opsboard
+docker run -p 3000:3000 -p 5001:5001 CPS Task Manager
 ```
 
 ### Manual Deployment
@@ -529,7 +529,7 @@ This project is licensed under the ISC License. See the [LICENSE](LICENSE) file 
 
 ---
 
-**Tagline:** _OpsBoard: Where Teams Work in Sync._
+**Tagline:** _CPS Task Manager: Where Teams Work in Sync._
 
 ---
 

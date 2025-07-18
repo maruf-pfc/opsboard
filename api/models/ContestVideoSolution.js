@@ -32,7 +32,7 @@ const ContestVideoSolutionSchema = new mongoose.Schema(
     },
     priority: {
       type: String,
-      enum: ['LOW', 'NORMAL', 'HIGH'],
+      enum: ['NORMAL', 'MEDIUM', 'HIGH'],
       default: 'NORMAL',
     },
     assignedTo: {
@@ -55,10 +55,10 @@ const ContestVideoSolutionSchema = new mongoose.Schema(
       type: String,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 export default mongoose.model(
   'ContestVideoSolution',
-  ContestVideoSolutionSchema,
+  ContestVideoSolutionSchema
 );

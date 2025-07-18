@@ -11,7 +11,7 @@ const MarketingSchema = new mongoose.Schema(
     },
     priority: {
       type: String,
-      enum: ['LOW', 'NORMAL', 'HIGH'],
+      enum: ['NORMAL', 'MEDIUM', 'HIGH'],
       default: 'NORMAL',
     },
     assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -20,7 +20,7 @@ const MarketingSchema = new mongoose.Schema(
     dueDate: { type: Date },
     notes: { type: String },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 const Marketing = mongoose.model('Marketing', MarketingSchema);

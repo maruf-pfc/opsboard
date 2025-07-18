@@ -5,24 +5,19 @@ import toast from 'react-hot-toast';
 import TaskModal, { Task } from '@/components/general-tasks/TaskModal';
 import {
   PlusIcon,
-  UserCircleIcon,
   CalendarIcon,
   ClockIcon,
-  AcademicCapIcon,
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
   CheckCircleIcon,
   XCircleIcon,
   EyeIcon,
   MinusIcon,
-  VideoCameraIcon,
-  TrophyIcon,
-  CreditCardIcon,
-  EnvelopeIcon,
-  PencilIcon,
+  PencilIcon, // Added PencilIcon for edit button
   ChatBubbleLeftIcon,
 } from '@heroicons/react/24/solid';
 import { format } from 'date-fns';
+import KanbanCard from '@/components/kanban/KanbanCard';
 
 interface User {
   _id: string;
@@ -42,48 +37,50 @@ interface Comment {
   createdAt: string;
 }
 
+// Meta information for task statuses
 const statusMeta = {
   TODO: {
     label: 'To Do',
-    color: 'from-gray-400 via-gray-500 to-gray-600',
+    color: 'from-gray-500 to-gray-600', // Darker gray for better contrast
     icon: ClockIcon,
   },
   IN_PROGRESS: {
     label: 'In Progress',
-    color: 'from-blue-400 via-blue-500 to-blue-600',
+    color: 'from-blue-500 to-blue-600', // Slightly darker blue
     icon: ArrowTrendingUpIcon,
   },
   IN_REVIEW: {
     label: 'In Review',
-    color: 'from-purple-400 via-purple-500 to-purple-600',
+    color: 'from-purple-500 to-purple-600', // Slightly darker purple
     icon: EyeIcon,
   },
   COMPLETED: {
     label: 'Completed',
-    color: 'from-green-400 via-green-500 to-green-600',
+    color: 'from-green-500 to-green-600', // Slightly darker green
     icon: CheckCircleIcon,
   },
   BLOCKED: {
     label: 'Blocked',
-    color: 'from-red-400 via-red-500 to-red-600',
+    color: 'from-red-500 to-red-600', // Slightly darker red
     icon: XCircleIcon,
   },
 };
 
+// Meta information for task priorities
 const priorityMeta = {
   HIGH: {
     label: 'High',
-    color: 'bg-gradient-to-r from-pink-500 to-red-500 text-white',
+    color: 'bg-gradient-to-r from-red-500 to-pink-600 text-white',
     icon: ArrowTrendingUpIcon,
   },
   NORMAL: {
     label: 'Normal',
-    color: 'bg-gradient-to-r from-gray-300 to-gray-500 text-gray-800',
+    color: 'bg-gradient-to-r from-gray-400 to-gray-500 text-white',
     icon: MinusIcon,
   },
-  LOW: {
-    label: 'Low',
-    color: 'bg-gradient-to-r from-blue-300 to-blue-500 text-white',
+  MEDIUM: {
+    label: 'Medium',
+    color: 'bg-gradient-to-r from-yellow-400 to-yellow-600 text-white',
     icon: ArrowTrendingDownIcon,
   },
 };
@@ -102,56 +99,65 @@ export default function GeneralTasksPage() {
       const { data } = await api.get('/tasks?type=general');
       setTasks(data);
     } catch (error) {
+      console.error('Error fetching general tasks:', error);
       toast.error('Failed to fetch general tasks');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Fetch users for assignment dropdowns
   const fetchUsers = async () => {
     try {
       const { data } = await api.get('/users');
       setUsers(data);
     } catch (error) {
+      console.error('Error fetching users:', error);
       toast.error('Could not load users.');
     }
   };
 
+  // Initial data fetch on component mount
   useEffect(() => {
     fetchGeneralTasks();
     fetchUsers();
   }, []);
 
+  // Handler for when a task is saved (created or updated)
   const handleTaskSaved = () => {
-    fetchGeneralTasks();
-    setTaskToEdit(null);
-    setIsModalOpen(false);
+    fetchGeneralTasks(); // Re-fetch tasks to update the list
+    setTaskToEdit(null); // Clear task being edited
+    setIsModalOpen(false); // Close the modal
   };
 
+  // Display a loading state while tasks are being fetched
   if (isLoading)
     return (
       <div className="flex justify-center items-center h-64 text-lg font-semibold text-gray-500">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent mr-3"></div>
         Loading tasks...
       </div>
     );
 
   return (
-    <div className="relative space-y-8 px-2 sm:px-4 md:px-6 lg:px-8 pb-24">
+    <div className="relative space-y-8 p-4 sm:p-6 lg:p-8 pb-24 font-sans">
+      {' '}
+      {/* Added base padding */}
       {/* Floating New Task Button (mobile) */}
       <button
         onClick={() => {
           setTaskToEdit(null);
           setIsModalOpen(true);
         }}
-        className="fixed z-50 bottom-6 right-6 md:hidden flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-indigo-700 text-white font-semibold py-3 px-5 rounded-full shadow-xl hover:from-indigo-600 hover:to-indigo-800 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400"
+        className="fixed z-50 bottom-6 right-6 md:hidden flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-700 text-white font-semibold py-3 px-5 rounded-full shadow-xl hover:from-indigo-700 hover:to-purple-800 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2"
         aria-label="New Task"
       >
         <PlusIcon className="h-6 w-6" />
         <span className="font-bold">New</span>
       </button>
-
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-extrabold text-gray-800 tracking-tight">
+      {/* Page Header and Desktop New Task Button */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight leading-tight mb-4 sm:mb-0">
           General Tasks ({tasks.length} total)
         </h1>
         <button
@@ -159,145 +165,133 @@ export default function GeneralTasksPage() {
             setTaskToEdit(null);
             setIsModalOpen(true);
           }}
-          className="hidden md:flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-indigo-700 text-white font-semibold py-2 px-5 rounded-lg shadow-md hover:from-indigo-600 hover:to-indigo-800 transition-all cursor-pointer"
+          className="hidden md:flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-700 text-white font-semibold py-2.5 px-6 rounded-lg shadow-md hover:from-indigo-700 hover:to-purple-800 transition-all duration-300 transform hover:scale-105 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2"
         >
           <PlusIcon className="h-5 w-5" />
           New Task
         </button>
       </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-7 w-full">
+      {/* Tasks Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 xl:gap-8">
+        {' '}
+        {/* Adjusted gaps for better spacing */}
+        {/* Filter status columns to only show those with tasks */}
         {Object.entries(statusMeta)
           .filter(
-            ([status]) => tasks.filter((t) => t.status === status).length > 0,
+            ([status]) => tasks.filter((t) => t.status === status).length > 0
           )
           .map(([status, meta]) => (
             <div key={status} className="flex flex-col h-full">
-              {/* Status Header */}
+              {/* Status Header (Sticky for scrolling lists) */}
               <div
-                className={`flex items-center gap-2 mb-4 px-3 py-2 rounded-xl bg-gradient-to-r ${meta.color} shadow-md text-white font-bold text-lg sticky top-0 z-10`}
+                className={`flex items-center gap-2 mb-4 px-4 py-2 rounded-xl bg-gradient-to-r ${meta.color} shadow-lg text-white font-bold text-lg sticky top-0 z-10`}
               >
                 <meta.icon className="h-6 w-6 mr-1 opacity-90" />
                 <span>{meta.label}</span>
-                <span className="ml-auto text-sm font-medium bg-white/20 px-2 py-0.5 rounded-full">
+                <span className="ml-auto text-sm font-medium bg-white/30 px-2.5 py-0.5 rounded-full backdrop-blur-sm">
+                  {' '}
+                  {/* More prominent count */}
                   {tasks.filter((t) => t.status === status).length}
                 </span>
               </div>
-              <div className="space-y-5 flex-1 min-h-[120px]">
+
+              {/* Task Cards within each status column */}
+              <div className="space-y-4 flex-1 min-h-[120px]">
                 {tasks
                   .filter((t) => t.status === status)
                   .map((task) => {
-                    const PriorityIcon = priorityMeta[task.priority].icon;
                     return (
-                      <div
+                      <KanbanCard
                         key={task._id}
+                        title={task.title}
+                        description={task.description}
+                        details={[
+                          <span key="status">Status: {task.status}</span>,
+                          <span key="priority">Priority: {task.priority}</span>,
+                          task.notes && (
+                            <span key="notes">Notes: {task.notes}</span>
+                          ),
+                        ].filter(Boolean)}
+                        metaTop={[
+                          task.startDate && (
+                            <span
+                              key="start"
+                              className="flex items-center gap-1"
+                            >
+                              <CalendarIcon className="h-4 w-4 text-gray-500" />
+                              Start: {format(new Date(task.startDate), 'PP')}
+                            </span>
+                          ),
+                          task.dueDate && (
+                            <span key="due" className="flex items-center gap-1">
+                              <CalendarIcon className="h-4 w-4 text-gray-500" />
+                              Due: {format(new Date(task.dueDate), 'PP')}
+                            </span>
+                          ),
+                        ].filter(Boolean)}
+                        metaBottom={[
+                          task.assignedTo && (
+                            <span
+                              key="assigned"
+                              className="flex items-center gap-1"
+                            >
+                              {task.assignedTo.profileImage ? (
+                                <img
+                                  src={task.assignedTo.profileImage}
+                                  alt={task.assignedTo.name}
+                                  className="w-6 h-6 rounded-full object-cover border-2 border-indigo-300"
+                                />
+                              ) : (
+                                <span className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-700 text-xs border-2 border-indigo-300">
+                                  {task.assignedTo.name
+                                    ?.charAt(0)
+                                    .toUpperCase()}
+                                </span>
+                              )}
+                              <span>Assigned: {task.assignedTo.name}</span>
+                            </span>
+                          ),
+                          task.reportedTo && (
+                            <span
+                              key="reported"
+                              className="flex items-center gap-1"
+                            >
+                              {task.reportedTo.profileImage ? (
+                                <img
+                                  src={task.reportedTo.profileImage}
+                                  alt={task.reportedTo.name}
+                                  className="w-6 h-6 rounded-full object-cover border-2 border-pink-300"
+                                />
+                              ) : (
+                                <span className="w-6 h-6 rounded-full bg-pink-100 flex items-center justify-center font-bold text-pink-700 text-xs border-2 border-pink-300">
+                                  {task.reportedTo.name
+                                    ?.charAt(0)
+                                    .toUpperCase()}
+                                </span>
+                              )}
+                              <span>Reported: {task.reportedTo.name}</span>
+                            </span>
+                          ),
+                        ].filter(Boolean)}
+                        priority={task.priority}
                         onClick={() => {
                           setTaskToEdit(task);
                           setIsModalOpen(true);
                         }}
-                        className="w-full text-left bg-white/80 backdrop-blur-md border border-gray-100 rounded-2xl shadow-lg p-5 flex flex-col gap-2 transition-all duration-200 hover:shadow-2xl hover:scale-[1.025] group max-w-full cursor-pointer"
-                      >
-                        <div className="flex items-center justify-between w-full">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <CheckCircleIcon className="h-5 w-5 text-indigo-500 shrink-0" />
-                            <div className="task-title text-base font-semibold whitespace-normal break-words">
-                              {task.title}
-                            </div>
-                          </div>
-                          <div className="flex gap-1">
-                            <span
-                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold shadow-sm ${priorityMeta[task.priority].color}`}
-                            >
-                              <PriorityIcon className="h-4 w-4" />
-                              {priorityMeta[task.priority].label}
-                            </span>
-                          </div>
-                        </div>
-
-                        {task.description && (
-                          <p className="text-sm text-gray-600 line-clamp-2">
-                            {task.description}
-                          </p>
-                        )}
-
-                        <div className="flex flex-wrap gap-2 text-xs text-gray-500 mt-1 w-full break-words">
-                          <span className="inline-flex items-center gap-1">
-                            <CalendarIcon className="h-4 w-4" />
-                            {task.createdAt
-                              ? format(new Date(task.createdAt), 'PP')
-                              : '—'}
-                          </span>
-                          {task.assignedTo && (
-                            <span className="inline-flex items-center gap-1">
-                              <span className="font-semibold">Assigned:</span>{' '}
-                              {task.assignedTo.name}
-                            </span>
-                          )}
-                          {task.reportedTo && (
-                            <span className="inline-flex items-center gap-1">
-                              <span className="font-semibold">Reported:</span>{' '}
-                              {task.reportedTo.name}
-                            </span>
-                          )}
-                          {task.comments && task.comments.length > 0 && (
-                            <span className="inline-flex items-center gap-1">
-                              <ChatBubbleLeftIcon className="h-4 w-4" />
-                              <span className="font-semibold">
-                                Comments:
-                              </span>{' '}
-                              {task.comments.length}
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="flex items-start gap-4 mt-2 flex-col w-full">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="text-xs text-gray-500">
-                              Assigned:
-                            </span>
-                            {task.assignedTo?.profileImage ? (
-                              <img
-                                src={task.assignedTo.profileImage}
-                                alt={task.assignedTo.name}
-                                className="w-7 h-7 rounded-full object-cover border-2 border-indigo-200"
-                              />
-                            ) : (
-                              <span className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-700 border-2 border-indigo-200">
-                                {task.assignedTo?.name?.charAt(0).toUpperCase()}
-                              </span>
-                            )}
-                            <span className="font-medium text-xs text-gray-700 truncate max-w-[8rem]">
-                              {task.assignedTo?.name}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="text-xs text-gray-500">
-                              Reported:
-                            </span>
-                            {task.reportedTo?.profileImage ? (
-                              <img
-                                src={task.reportedTo.profileImage}
-                                alt={task.reportedTo.name}
-                                className="w-7 h-7 rounded-full object-cover border-2 border-pink-200"
-                              />
-                            ) : (
-                              <span className="w-7 h-7 rounded-full bg-pink-100 flex items-center justify-center font-bold text-pink-700 border-2 border-pink-200">
-                                {task.reportedTo?.name?.charAt(0).toUpperCase()}
-                              </span>
-                            )}
-                            <span className="font-medium text-gray-700 text-xs truncate max-w-[8rem]">
-                              {task.reportedTo?.name}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
+                      />
                     );
                   })}
+                {/* Placeholder for empty status columns */}
+                {tasks.filter((t) => t.status === status).length === 0 && (
+                  <div className="p-5 text-center text-gray-400 text-sm italic bg-gray-50 rounded-xl shadow-inner">
+                    No tasks in this status.
+                  </div>
+                )}
               </div>
             </div>
           ))}
       </div>
-
+      {/* Task Modal */}
       <TaskModal
         isOpen={isModalOpen}
         onClose={() => {
@@ -307,7 +301,7 @@ export default function GeneralTasksPage() {
         onSave={handleTaskSaved}
         users={users}
         task={taskToEdit}
-        key={taskToEdit ? taskToEdit._id : 'new'}
+        key={taskToEdit ? taskToEdit._id : 'new'} // Key to force re-render for new/edit
       />
     </div>
   );

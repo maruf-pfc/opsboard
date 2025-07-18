@@ -19,17 +19,16 @@ export interface ContestVideoSolution {
   batchNo: string;
   contestName: string;
   onlineJudge: 'Leetcode' | 'Vjudge';
+  platform: 'Google Classroom' | 'Website';
   status: 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'COMPLETED' | 'BLOCKED';
-  priority: 'LOW' | 'NORMAL' | 'HIGH';
+  priority: 'NORMAL' | 'MEDIUM' | 'HIGH';
   assignedTo: User;
   reportedTo: User;
-  estimatedTime: string;
-  platform: 'Google Classroom' | 'Website';
-  createdAt?: string;
-  updatedAt?: string;
   startDate?: string;
   dueDate?: string;
   notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface ProblemModalProps {
@@ -58,7 +57,7 @@ export default function ProblemModal({
       courseName: 'CPC',
       batchNo: '',
       contestName: '',
-      onlineJudge: undefined, // or 'Leetcode' (as a default)
+      onlineJudge: undefined,
       platform: 'Google Classroom',
       status: 'TODO',
       priority: 'NORMAL',
@@ -95,7 +94,7 @@ export default function ProblemModal({
         courseName: 'CPC',
         batchNo: '',
         contestName: '',
-        onlineJudge: undefined, // or 'Leetcode' (as a default)
+        onlineJudge: undefined,
         platform: 'Google Classroom',
         status: 'TODO',
         priority: 'NORMAL',
@@ -128,7 +127,7 @@ export default function ProblemModal({
       if (problem && problem._id) {
         response = await api.put(
           `/contest-video-solutions/${problem._id}`,
-          payload,
+          payload
         );
         toast.success('Contest video solution updated!');
       } else {
@@ -139,8 +138,7 @@ export default function ProblemModal({
       onClose();
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message ||
-          'Failed to save contest video solution.',
+        err?.response?.data?.message || 'Failed to save contest video solution.'
       );
     }
   };
@@ -153,21 +151,23 @@ export default function ProblemModal({
           aria-hidden="true"
         />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="w-full max-w-lg bg-white rounded-lg shadow-lg p-8">
-            <h2 className="text-xl font-bold mb-4 cursor-pointer">
+          <Dialog.Panel className="w-full max-w-2xl bg-white rounded-lg shadow-lg p-8 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold mb-6 text-gray-800">
               {problem
                 ? 'Edit Contest Video Solution'
                 : 'Create Contest Video Solution'}
             </h2>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Course Name
                   </label>
                   <select
                     {...register('courseName')}
-                    className={`w-full border rounded px-3 py-2 mt-1 ${errors.courseName ? 'border-red-500' : ''}`}
+                    className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                      errors.courseName ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   >
                     <option value="CPC">CPC</option>
                     <option value="JIPC">JIPC</option>
@@ -181,12 +181,14 @@ export default function ProblemModal({
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium">Batch No</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Batch No
+                  </label>
                   <input
                     type="text"
                     {...register('batchNo')}
-                    className={`w-full border rounded px-3 py-2 mt-1 ${
-                      errors.batchNo ? 'border-red-500' : ''
+                    className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                      errors.batchNo ? 'border-red-500' : 'border-gray-300'
                     }`}
                   />
                   {errors.batchNo && (
@@ -195,32 +197,32 @@ export default function ProblemModal({
                     </p>
                   )}
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium">
-                  Contest Name
-                </label>
-                <input
-                  type="text"
-                  {...register('contestName')}
-                  className={`w-full border rounded px-3 py-2 mt-1 ${
-                    errors.contestName ? 'border-red-500' : ''
-                  }`}
-                />
-                {errors.contestName && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.contestName.message}
-                  </p>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Contest Name
+                  </label>
+                  <input
+                    type="text"
+                    {...register('contestName')}
+                    className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                      errors.contestName ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                  />
+                  {errors.contestName && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.contestName.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Online Judge
                   </label>
                   <select
                     {...register('onlineJudge')}
-                    className={`w-full border rounded px-3 py-2 mt-1 ${errors.onlineJudge ? 'border-red-500' : ''}`}
+                    className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                      errors.onlineJudge ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   >
                     <option value="Leetcode">Leetcode</option>
                     <option value="Vjudge">Vjudge</option>
@@ -232,10 +234,14 @@ export default function ProblemModal({
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium">Platform</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Platform
+                  </label>
                   <select
                     {...register('platform')}
-                    className={`w-full border rounded px-3 py-2 mt-1 ${errors.platform ? 'border-red-500' : ''}`}
+                    className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                      errors.platform ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   >
                     <option value="Google Classroom">Google Classroom</option>
                     <option value="Website">Website</option>
@@ -246,14 +252,14 @@ export default function ProblemModal({
                     </p>
                   )}
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium">Status</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Status
+                  </label>
                   <select
                     {...register('status')}
-                    className={`w-full border rounded px-3 py-2 mt-1 ${
-                      errors.status ? 'border-red-500' : ''
+                    className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                      errors.status ? 'border-red-500' : 'border-gray-300'
                     }`}
                   >
                     <option value="TODO">To Do</option>
@@ -269,16 +275,18 @@ export default function ProblemModal({
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium">Priority</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Priority
+                  </label>
                   <select
                     {...register('priority')}
-                    className={`w-full border rounded px-3 py-2 mt-1 ${
-                      errors.priority ? 'border-red-500' : ''
+                    className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                      errors.priority ? 'border-red-500' : 'border-gray-300'
                     }`}
                   >
                     <option value="NORMAL">Normal</option>
+                    <option value="MEDIUM">Medium</option>
                     <option value="HIGH">High</option>
-                    <option value="LOW">Low</option>
                   </select>
                   {errors.priority && (
                     <p className="text-red-500 text-sm mt-1">
@@ -286,19 +294,17 @@ export default function ProblemModal({
                     </p>
                   )}
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Assigned To
                   </label>
                   <select
                     {...register('assignedTo')}
-                    className={`w-full border rounded px-3 py-2 mt-1 ${
-                      errors.assignedTo ? 'border-red-500' : ''
+                    className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                      errors.assignedTo ? 'border-red-500' : 'border-gray-300'
                     }`}
                   >
-                    <option value="">Select User</option>
+                    <option value="">Select assigned user</option>
                     {users.map((user) => (
                       <option key={user._id} value={user._id}>
                         {user.name}
@@ -312,16 +318,16 @@ export default function ProblemModal({
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Reported To
                   </label>
                   <select
                     {...register('reportedTo')}
-                    className={`w-full border rounded px-3 py-2 mt-1 ${
-                      errors.reportedTo ? 'border-red-500' : ''
+                    className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                      errors.reportedTo ? 'border-red-500' : 'border-gray-300'
                     }`}
                   >
-                    <option value="">Select User</option>
+                    <option value="">Select reported user</option>
                     {users.map((user) => (
                       <option key={user._id} value={user._id}>
                         {user.name}
@@ -335,27 +341,82 @@ export default function ProblemModal({
                   )}
                 </div>
               </div>
-              <div className="flex justify-end gap-4 mt-6">
+
+              {/* Start Date and Due Date in one row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    {...register('startDate')}
+                    className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                      errors.startDate ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                  />
+                  {errors.startDate && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.startDate.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Due Date
+                  </label>
+                  <input
+                    type="date"
+                    {...register('dueDate')}
+                    className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                      errors.dueDate ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                  />
+                  {errors.dueDate && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.dueDate.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Notes
+                </label>
+                <textarea
+                  {...register('notes')}
+                  className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                    errors.notes ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                {errors.notes && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.notes.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105 font-medium cursor-pointer"
-                  disabled={isSubmitting}
+                  className="px-6 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-lg shadow-md hover:from-indigo-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transform transition-all duration-200 hover:scale-105 font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting
                     ? problem
-                      ? 'Updating...'
+                      ? 'Saving...'
                       : 'Creating...'
                     : problem
-                      ? 'Update'
-                      : 'Create'}
+                    ? 'Update Contest Video Solution'
+                    : 'Create Contest Video Solution'}
                 </button>
               </div>
             </form>

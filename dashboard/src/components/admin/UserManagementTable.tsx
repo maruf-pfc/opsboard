@@ -1,21 +1,21 @@
-import { useEffect, useState } from "react";
-import api from "@/lib/api";
-import toast from "react-hot-toast";
-import { format } from "date-fns";
-import UserModal, { CreateUserModal } from "./UserModal";
-import { useAuth } from "@/hooks/useAuth";
+import { useEffect, useState } from 'react';
+import api from '@/lib/api';
+import toast from 'react-hot-toast';
+import { format } from 'date-fns';
+import UserModal, { CreateUserModal } from './UserModal';
+import { useAuth } from '@/hooks/useAuth';
 
 interface IUser {
   _id?: string;
   name: string;
   email: string;
   role:
-    | "ADMIN"
-    | "MANAGER"
-    | "MEMBER"
-    | "TRAINER"
-    | "Developer"
-    | "Teaching Assistant";
+    | 'ADMIN'
+    | 'MANAGER'
+    | 'MEMBER'
+    | 'TRAINER'
+    | 'Developer'
+    | 'Teaching Assistant';
   phone?: string;
   facebookUrl?: string;
   profileImage?: string;
@@ -33,10 +33,10 @@ export function UserManagementTable() {
   const fetchUsers = async () => {
     setIsLoading(true);
     try {
-      const { data } = await api.get("/users");
+      const { data } = await api.get('/users');
       setUsers(data);
     } catch (error) {
-      toast.error("Failed to load users.");
+      toast.error('Failed to load users.');
     } finally {
       setIsLoading(false);
     }
@@ -47,16 +47,16 @@ export function UserManagementTable() {
     setIsEditModalOpen(true);
   };
 
-  const handleEditSave = async (updatedUser: Omit<IUser, "_id">) => {
+  const handleEditSave = async (updatedUser: Omit<IUser, '_id'>) => {
     if (!selectedUser?._id) return;
     try {
       await api.put(`/users/${selectedUser._id}`, updatedUser);
-      toast.success("User updated successfully!");
+      toast.success('User updated successfully!');
       setIsEditModalOpen(false);
       setSelectedUser(null);
       fetchUsers();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to update user");
+      toast.error(error.response?.data?.error || 'Failed to update user');
     }
   };
 
@@ -71,7 +71,7 @@ export function UserManagementTable() {
   return (
     <div className="overflow-x-auto w-full bg-white rounded-lg shadow p-8">
       {/* Create New User button, only for ADMIN */}
-      {user?.role === "ADMIN" && (
+      {user?.role === 'ADMIN' && (
         <div className="flex justify-end mb-6">
           <button
             onClick={() => setIsModalOpen(true)}
@@ -129,13 +129,13 @@ export function UserManagementTable() {
               <td className="px-6 py-4 whitespace-nowrap text-sm">
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border-2 shadow-sm ${
-                    user.role === "ADMIN"
-                      ? "bg-indigo-100 text-indigo-800 border-indigo-400"
-                      : user.role === "MANAGER"
-                      ? "bg-blue-100 text-blue-800 border-blue-400"
-                      : user.role === "TRAINER"
-                      ? "bg-green-100 text-green-800 border-green-400"
-                      : "bg-gray-100 text-gray-800 border-gray-300"
+                    user.role === 'ADMIN'
+                      ? 'bg-indigo-100 text-indigo-800 border-indigo-400'
+                      : user.role === 'MANAGER'
+                      ? 'bg-blue-100 text-blue-800 border-blue-400'
+                      : user.role === 'TRAINER'
+                      ? 'bg-green-100 text-green-800 border-green-400'
+                      : 'bg-gray-100 text-gray-800 border-gray-300'
                   }`}
                 >
                   {user.role.charAt(0) + user.role.slice(1).toLowerCase()}
@@ -145,7 +145,7 @@ export function UserManagementTable() {
                 {user.email}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {user.phone || "-"}
+                {user.phone || '-'}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-500">
                 {user.facebookUrl ? (
@@ -158,13 +158,13 @@ export function UserManagementTable() {
                     Facebook
                   </a>
                 ) : (
-                  "-"
+                  '-'
                 )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {user.createdAt
-                  ? format(new Date(user.createdAt), "PP")
-                  : "N/A"}
+                  ? format(new Date(user.createdAt), 'PP')
+                  : 'N/A'}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm flex gap-2">
                 <button
@@ -189,7 +189,7 @@ export function UserManagementTable() {
         user={selectedUser}
       />
       {/* Only show CreateUserModal for admin */}
-      {user?.role === "ADMIN" && (
+      {user?.role === 'ADMIN' && (
         <CreateUserModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
